@@ -22,7 +22,8 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 | --- | --- | --- | --- |
 | Site Overview | Site overview (`overview`) | What needs attention now, asset operational state, permits, event power, diagnostics replay findings, what is coming up, and data sources; each figure comes from the page that owns it | Site + replay |
 | Site Map & PTW | PTW map (`ptw-map`) | **Imported permit records** from the real permit forms on the client's Power BI location mapping (markers, clusters, density layer, filters, exception list, validation report), or the synthetic site demo with each permit's isolations and closures | Imported or Site |
-| Asset Health & Engineering | Fleet operational status (`asset-status`) | Operational state of every site asset by zone | Site |
+| Asset Health & Engineering | Asset overview (`assets`) | Every asset from both datasets under shared categories (chillers, AHUs, distribution boards and others), with category, source and attention filters; operational state and diagnostic findings stay in separate columns | Site + replay |
+| | Fleet operational status (`asset-status`) | Operational state of every site asset by zone | Site |
 | | Electrical distribution (`electrical`) | Distribution boards and the devices downstream of a problem | Site |
 | | Diagnostic findings (`diagnostics`) | Rule-based detector findings for the monitored demonstration assets | Replay |
 | | Engineering measurements (`asset-engineering`) | Earth leakage, trips, voltage, current and process trends for one asset; illustrative 3D schematic | Replay |

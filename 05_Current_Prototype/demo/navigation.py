@@ -14,10 +14,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-SITE, REPLAY, REFERENCE, NONE = "site", "replay", "reference", "none"
+SITE, REPLAY, MIXED, REFERENCE, NONE = "site", "replay", "mixed", "reference", "none"
 SOURCE_LABEL = {
     SITE: "Site operations data · demo / synthetic",
     REPLAY: "Diagnostics replay · demo / synthetic scenario",
+    MIXED: "Site operations + diagnostics replay · demo / synthetic",
     REFERENCE: "External reference material · not integrated",
     NONE: "",
 }
@@ -40,10 +41,13 @@ AREAS = ("Site Overview", "Site Map & PTW", "Asset Health & Engineering", "Fault
          "Operations & Planning", "Administration & Integrations")
 
 PAGES = (
-    Page("overview", "Site overview", "Site Overview", SITE, "Summary across the areas below; each figure keeps its own meaning",
+    Page("overview", "Site overview", "Site Overview", MIXED, "Summary across the areas below; each figure keeps its own meaning",
          "What needs attention across the site right now?"),
     Page("ptw-map", "PTW map", "Site Map & PTW", SITE, "PTW timing: active now or later today. Not a risk rating",
          "Where are permits to work today, and what do they isolate or close?", module="ptw_dashboard"),
+    Page("assets", "Asset overview", "Asset Health & Engineering", MIXED,
+         "Operational state (site assets) and diagnostic findings (replay assets), in separate columns",
+         "Which assets exist in each category, and which need attention in their own terms?"),
     Page("asset-status", "Fleet operational status", "Asset Health & Engineering", SITE,
          "Operational asset state: Operational, Idle, Warning, Down, Offline",
          "Which site assets are running, idle, degraded, down or offline?", module="asset_dashboard"),

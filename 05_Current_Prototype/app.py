@@ -1099,6 +1099,98 @@ def overview_page() -> None:
         st.markdown(f'<div class="ioc-dir">{"".join(areas)}</div>', unsafe_allow_html=True)
 
 
+ASSET_CSS = """
+.ao-cats {display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.6rem;margin:.2rem 0 1rem}
+.ao-cat {border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.55rem .75rem}
+.ao-cat b {display:block;font-size:1.55rem;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums}
+.ao-cat span {display:block;font-size:.84rem;font-weight:650;color:var(--gbb-ink)}
+.ao-cat small {display:block;font-size:.74rem;color:var(--gbb-ink-3);margin-top:.15rem}
+.ao-cat small em {font-style:normal;font-weight:700;color:var(--gbb-ink)}
+.ao-detail {display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.7rem 1.2rem;margin:.3rem 0 .7rem}
+.ao-detail div small {display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
+.ao-detail div span {font-size:.95rem}
+"""
+
+
+def replay_catalogue(run: dict) -> list[dict]:
+    """Diagnostics-replay assets as catalogue rows, using the workbench's own status rules."""
+    from demo import asset_catalogue
+
+    rows = []
+    for aid, asset in asset_by_id.items():
+        bucket = display_bucket(run, aid)
+        state = asset_status(bucket, point_signals(bucket))
+        open_jobs = sum(row.get("status") in {"open", "in_progress"} for row in bucket.get("work_orders", []))
+        rows.append(asset_catalogue.replay_row(asset, state["status"], state["headline"],
+                                               [point_label(point) for point in bucket["points"]], open_jobs, bucket["freshness"]))
+    return rows
+
+
+def asset_overview_page() -> None:
+    """Consolidated asset list: both sources, shared categories, separate status columns, links to the specialist pages."""
+    from demo import asset_catalogue as ac
+
+    page_header(navigation.PAGE["assets"])
+    st.markdown(f"<style>{ASSET_CSS}</style>", unsafe_allow_html=True)
+    db = site_db()
+    if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
+        replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
+    run = {**st.session_state["replay"], "imported_readings": [row for aid in asset_by_id for row in list_readings(aid)]}
+    rows = (ac.site_rows(db) if db is not None else []) + replay_catalogue(run)
+    counts = ac.category_counts(rows)
+    st.markdown('<div class="ao-cats">' + "".join(
+        f'<div class="ao-cat"><b>{item["total"]}</b><span>{esc(item["category"])}</span>'
+        f'<small>{item["site"]} site · {item["replay"]} replay'
+        + (f' · <em>{item["attention"]} need attention</em>' if item["attention"] else "") + "</small></div>" for item in counts)
+        + "</div>", unsafe_allow_html=True)
+    a, b, c = st.columns([3, 1.4, 1.2])
+    with a:
+        chosen = st.pills("Category", [item["category"] for item in counts], selection_mode="multi", key="ao_categories")
+    with b:
+        sources = st.pills("Source", [ac.SITE, ac.REPLAY], selection_mode="multi", key="ao_sources")
+    with c:
+        attention = st.toggle("Needs attention only", key="ao_attention",
+                              help="A Down, Warning or Offline operational state, or a detector finding: each in its own terms.")
+    text = st.text_input("Search asset ID, name or location", key="ao_text")
+    shown = ac.select(rows, chosen, sources, attention, text)
+    st.caption(f"{len(shown)} of {len(rows)} assets. Site assets and replay assets are different demonstration datasets; "
+               "a cell a source does not report says so rather than borrowing a value.")
+    if not shown:
+        st.info("No assets match these filters.")
+        return
+    table = pd.DataFrame([{"Category": r["category"], "Asset": r["asset_id"], "Name": r["name"], "Location": r["location"],
+                           "Source": r["source"], "Operational state": r["operational"], "Diagnostic finding": r["finding"],
+                           "Why": r["reason"], "Work": r["work"], "Measurements": r["measurements"]} for r in shown])
+    picked = st.dataframe(table, hide_index=True, width="stretch", height=min(420, 38 + 35 * len(table)), on_select="rerun",
+                          selection_mode="single-row", key="ao_table")
+    selected = picked.selection.rows if picked and picked.selection else []
+    if not selected:
+        st.caption("Select a row for its details and the specialist pages that cover it.")
+        return
+    row = shown[selected[0]]
+    fields = [("Asset", f'{row["asset_id"]} · {row["name"]}'), ("Category", f'{row["category"]} (source type: {row["type"]})'),
+              ("Location", row["location"] or "Not recorded"), ("Source", row["source"]),
+              ("Operational state", row["operational"]), ("Diagnostic finding", row["finding"]),
+              ("Measurements available", row["measurements"]), ("Criticality", (row["criticality"] or "Not recorded").title())]
+    if row["reason"]:
+        fields.append(("Why", row["reason"]))
+    if row["work"]:
+        fields.append(("Work", row["work"]))
+    st.markdown('<div class="ao-detail">' + "".join(f'<div><small>{esc(k)}</small><span>{esc(v)}</span></div>' for k, v in fields)
+                + "</div>", unsafe_allow_html=True)
+    if row["source"] == ac.SITE:
+        st.markdown(f'<a href="{esc(row["href"])}" target="_blank">Open the asset page (new tab)</a> · '
+                    f'<a href="?view=asset-status" target="_self">Fleet operational status</a> · '
+                    f'<a href="?view=electrical" target="_self">Electrical distribution</a>', unsafe_allow_html=True)
+        if row["category"] == "Event power":
+            st.markdown('<a href="?view=event-power" target="_self">Event power</a>', unsafe_allow_html=True)
+    else:
+        x, y, _ = st.columns([1, 1, 2])
+        x.button("Open engineering measurements", key="ao-open-eng", on_click=navigate, args=("Asset overview", row["asset_id"]),
+                 type="primary", width="stretch")
+        y.button("Open investigation queue", key="ao-open-inv", on_click=navigate, args=("Investigate", row["asset_id"]), width="stretch")
+
+
 SITE_DETAILS = {  # query parameter -> (header, module, page renderer); each opens in its own tab
     "ptw": ("Permit", "ptw_dashboard", "render_ptw_page"),
     "asset": ("Asset", "asset_dashboard", "render_asset_page"),
@@ -1173,7 +1265,7 @@ if current.module:
     site_page(current)
     st.stop()
 if not current.replay_page:
-    overview_page()
+    {"overview": overview_page, "assets": asset_overview_page}[current.key]()
     st.stop()
 
 # Diagnostics workbench: one replayed synthetic scenario shared by the replay-backed pages.
