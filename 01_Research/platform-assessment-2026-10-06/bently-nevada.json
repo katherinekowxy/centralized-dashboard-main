@@ -1,0 +1,192 @@
+{
+  "id": "bently-nevada",
+  "name": "Bently Nevada (Baker Hughes)",
+  "checked_on": "2026-10-06",
+  "summary": "Bently Nevada is a Baker Hughes business with two publicly described rack choices, 3500 and Orbit 60. Both can supply System 1 condition monitoring; Orbit 60 adds a separated condition-monitoring network path. API 670 compliance is not exclusive to Bently Nevada.",
+  "flows": [
+    {
+      "name": "3500 protection and System 1 monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Machine transducers",
+          "detail": "Machine vibration and related measurements enter the 3500 rack's monitoring channels.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "3500 rack and TDI",
+          "detail": "The rack performs protection monitoring; its 3500/22M Transient Data Interface is the Ethernet gateway to System 1.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "System 1",
+          "detail": "System 1 combines machine condition data with other plant sources for diagnostic analysis.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Machinery engineer",
+          "detail": "Engineers review trends, plots and alarms for condition-based maintenance while rack protection remains a separate function.",
+          "source_ids": [
+            "s2",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "3500 remains supported alongside Orbit 60; this is one product route, not a prerequisite for Orbit 60."
+    },
+    {
+      "name": "Orbit 60 protection and condition monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Machine inputs",
+          "detail": "Orbit 60 accepts dynamic and process measurements for continuous machine monitoring.",
+          "source_ids": [
+            "s1",
+            "s4"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Orbit 60 modules",
+          "detail": "Protection processing is isolated from a condition-monitoring module; distributed chassis are an available architecture.",
+          "source_ids": [
+            "s1",
+            "s4"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "System 1",
+          "detail": "The condition-monitoring module can send machine data to System 1 for diagnostics; the protection path stays isolated.",
+          "source_ids": [
+            "s4",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Condition review",
+          "detail": "System 1 supports asset-context plots and monitoring decisions; Orbit 60 also executes hardware protection independently.",
+          "source_ids": [
+            "s3",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "API 670 protection and predictive diagnosis serve different functions. A cloud or enterprise replication layer is optional, not shown as mandatory."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §8: Bently Nevada is a Baker Hughes business with 3500, Orbit 60 and System 1",
+      "assessment": "Current Baker Hughes pages list these products and describe two rack choices, 3500 and Orbit 60, alongside System 1 software.",
+      "source_ids": [
+        "s1",
+        "s3",
+        "s5"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-landscape-eight-majors.md §1: 'everybody concedes API 670 to Bently Nevada'",
+      "assessment": "Market-incumbency language is not an exclusivity fact. Baker Hughes advertises Orbit 60 API 670 protection, while Emerson explicitly advertises AMS 6500 ATG as API 670-compliant.",
+      "source_ids": [
+        "s1",
+        "s6"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §2: Bently 3500/Orbit 60 are 'the industry standard'",
+      "assessment": "The products are established protection choices, but API 670 is an equipment standard and not a proprietary Bently Nevada standard. Vendor claims do not prove exclusive market share.",
+      "source_ids": [
+        "s1",
+        "s6"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §6 and §8: Bently Nevada is adjacent to GE Vernova platform offerings",
+      "assessment": "Bently Nevada is presented in the current Baker Hughes portfolio. Historic GE association should not be treated as current GE Vernova product ownership.",
+      "source_ids": [
+        "s5"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §8: System 1 is a machinery condition-monitoring layer",
+      "assessment": "Baker Hughes describes System 1 as software integrating data from Bently Nevada monitoring devices and other plant sources for asset diagnostics.",
+      "source_ids": [
+        "s3"
+      ]
+    }
+  ],
+  "unknowns": [
+    "A particular site's 3500 versus Orbit 60 choice, network zones, hosting and alarm-to-work-order integration cannot be inferred from product pages.",
+    "Public vendor descriptions do not establish that every Bently Nevada site uses System 1 or a remote service."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Orbit 60 Series machinery protection and monitoring",
+      "url": "https://www.bakerhughes.com/bently-nevada/monitoring-systems/machinery-protection/orbit-60-series",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "3500 Machinery Protection Systems",
+      "url": "https://www.bakerhughes.com/bently-nevada/bently-nevada-01/monitoring-systems/machinery-protection-systems/3500-machinery-protection-systems",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "System 1 condition monitoring software",
+      "url": "https://www.bakerhughes.com/bently-nevada/system-1-condition-monitoring-software",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "A data secure condition monitoring system",
+      "url": "https://www.bakerhughes.com/bently-nevada/blog/orbit-60-data-secure-condition-monitoring-system",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "Bently Nevada monitoring systems",
+      "url": "https://www.bakerhughes.com/bently-nevada/monitoring-systems",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "Emerson Machinery Protection Systems",
+      "url": "https://www.emerson.com/en/automation-systems/asset-performance-management/machinery-health-management/machinery-protection-systems",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

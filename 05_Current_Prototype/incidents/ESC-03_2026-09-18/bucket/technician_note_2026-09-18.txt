@@ -1,0 +1,15 @@
+CALL-OUT NOTE  (synthetic)  Ref CO-88412   Unit ESC-03 Northgate   Fri 18/9
+Typed up from notebook by T-121 after the visit.
+
+Called 18:41 by station control - esc out of service, "stopped with people on it".
+Attended approx 18:55. Unit stopped, locked out on start limit. Display showing HANDRAIL L fault.
+Station staff said it stopped hard + they restarted it 2x, kept tripping straight away.
+One passenger nearly fell, staff dealt with it (incident report - dont have a copy).
+Checked LH handrail - bit tight at lower newel, didnt adjust. RH ok.
+Brake ok. Smell of burning in machine space, prob brake after hard stop with full load on.
+Power cycled at isolator, reset lockout with tool. Ran UP empty approx 15 min, no faults,
+handrail L showing 98% on display.
+Changed to DOWN, back in service 19:30ish, watched 10 min, fine.
+No time for full checks - event night, station wanted it back.
+Recommend: LH handrail inspection next PM. Brake lining due anyway.
+Off site 19:45.

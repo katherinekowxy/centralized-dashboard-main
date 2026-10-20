@@ -1,0 +1,187 @@
+{
+  "id": "emerson",
+  "name": "Emerson",
+  "checked_on": "2026-10-06",
+  "summary": "Emerson publishes several compatible machinery monitoring paths. AMS 9420 and AMS Wireless Vibration Monitor are distinct WirelessHART devices; AMS Machine Works can receive both. AMS Optics is the current name for Plantweb Optics. These are product relationships, not a mandated single deployment.",
+  "flows": [
+    {
+      "name": "AMS 9420 wireless vibration route",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "AMS 9420 transmitter",
+          "detail": "Collects vibration and temperature; the 2025 data sheet identifies this device separately from the newer monitor.",
+          "source_ids": [
+            "s1",
+            "s3"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "WirelessHART gateway",
+          "detail": "IEC 62591 mesh reaches an Emerson Smart Wireless Gateway, which manages paths.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "edge"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "AMS analysis software",
+          "detail": "AMS Machinery Manager or AMS Machine Works can store and analyze AMS 9420 vibration data.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Machinery diagnosis",
+          "detail": "AMS software supports trending, alerts and fault diagnosis; no specific enterprise workflow is implied.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "DeltaV, Ovation and third-party hosts are supported alternatives, not required hops in this route."
+    },
+    {
+      "name": "Current AMS Wireless Vibration Monitor route",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Wireless Vibration Monitor",
+          "detail": "Triaxial vibration and temperature sensing with PeakVue Plus prescriptive indications.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "WirelessHART mesh",
+          "detail": "Compatible with existing WirelessHART networks and AMS 9420 installations.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "AMS Machine Works",
+          "detail": "Emerson names this as one supported system for deeper waveform and spectrum diagnosis.",
+          "source_ids": [
+            "s2",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "AMS machinery workflow",
+          "detail": "Machine Works offers machinery analysis, routes and case management; AMS Optics is a separate enterprise collaboration option.",
+          "source_ids": [
+            "s3",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Emerson also lists DeltaV, AMS Optics, historians and other integrations; this path is illustrative, not a required full stack."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §3: 'AMS Wireless Vibration Monitor (AMS 9420)'",
+      "assessment": "These are separate products. Emerson describes compatibility between their installations and lists both independently in AMS Machine Works.",
+      "source_ids": [
+        "s1",
+        "s2",
+        "s3"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §3: Plantweb Optics as the enterprise product name",
+      "assessment": "Emerson announced the transition of Plantweb Optics to AMS Optics in August 2023.",
+      "source_ids": [
+        "s4"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §3 and §8: AspenTech 'majority stake'",
+      "assessment": "AspenTech became a wholly owned Emerson subsidiary on 12 March 2025. Mtell's inclusion does not establish that every AMS deployment passes through Mtell.",
+      "source_ids": [
+        "s5"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §3: AMS 6500 ATG is protection-class hardware",
+      "assessment": "Emerson describes AMS 6500 ATG as an API 670-compliant protection system with embedded prediction technology; it is a separate wired option.",
+      "source_ids": [
+        "s6"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-product-catalogue.md §3: current AMS Machine Works version is v1.8",
+      "assessment": "The archived version is time-bound. Emerson's current article discusses v2.0, so the version should not be used as a timeless product label.",
+      "source_ids": [
+        "s3"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Exact site network segmentation, server placement and software configuration vary by deployment and are not established by these product pages.",
+    "A direct, required data path from AMS Machine Works or AMS Optics into Aspen Mtell is not established here."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "AMS 9420 Wireless Vibration Transmitter data sheet",
+      "url": "https://www.emerson.com/is/content/emerson/en/systems-and-software/ams/product-data-sheets/documents/ams-9420-wireless-vibration-transmitter.pdf",
+      "published": "2025-02",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "AMS Wireless Vibration Monitor",
+      "url": "https://www.emerson.com/en/automation-systems/asset-performance-management/machinery-health-management/ams-wireless-vibration-monitor",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "AMS Machine Works articles",
+      "url": "https://www.emerson.com/en/automation-systems/asset-performance-management/machinery-health-management/ams-machine-works/article",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "Emerson's Optics Asset Performance Platform Brings Enhancements to AMS Portfolio",
+      "url": "https://www.emerson.com/en/corporate/news/2023/08-plantweb-optics-transitions-to-ams-optics-family",
+      "published": "2023-08-15",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "AspenTech has been acquired by Emerson",
+      "url": "https://www.aspentech.com/en/acquisition/emerson",
+      "published": "2025-03-12",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "Machinery Protection Systems",
+      "url": "https://www.emerson.com/en/automation-systems/asset-performance-management/machinery-health-management/machinery-protection-systems",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

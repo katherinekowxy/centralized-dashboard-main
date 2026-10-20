@@ -1,0 +1,9 @@
+equipment_ref,timestamp,point,value,unit,operating_mode
+VENDOR:CHWP-06,2026-09-23T07:00:00+08:00,motor_current_a,36.4,A,running
+VENDOR:CHWP-06,2026-09-23T07:00:00+08:00,bearing_temp_c,54.2,°C,running
+VENDOR:CHWP-06,2026-09-23T07:00:00+08:00,vibration_mm_s,2.31,mm/s,running
+VENDOR:CHWP-06,2026-09-23T07:00:00+08:00,differential_pressure_kpa,286.0,kPa,running
+VENDOR:CHWP-06,2026-09-23T07:30:00+08:00,motor_current_a,37.1,A,running
+VENDOR:CHWP-06,2026-09-23T07:30:00+08:00,bearing_temp_c,54.8,°C,running
+VENDOR:CHWP-06,2026-09-23T07:30:00+08:00,vibration_mm_s,2.44,mm/s,running
+VENDOR:CHWP-06,2026-09-23T07:30:00+08:00,differential_pressure_kpa,291.0,kPa,running

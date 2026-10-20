@@ -1,0 +1,29 @@
+# Public repo: only what is needed to run SignalDesk. Everything is ignored unless listed below, so new files in
+# this workspace stay local by default. Not in the repo on purpose: real data (03_Data), past prototypes, personal
+# and learning notes, internal meeting prep, agent working notes, and the official GBTB map (internal use only).
+/*
+!/.gitignore
+!/README.md
+
+!/05_Current_Prototype/
+!/01_Research/
+/01_Research/*
+!/01_Research/platform-assessment-2026-10-06/
+
+# Inside the app
+/05_Current_Prototype/static/maps/*.jpg
+/05_Current_Prototype/static/maps/*.png
+/05_Current_Prototype/docs/management-qa.md
+/05_Current_Prototype/.runtime/
+/05_Current_Prototype/.test-tmp/
+/05_Current_Prototype/.test_tmp_imports/
+/05_Current_Prototype/data/*.sqlite3*
+/05_Current_Prototype/data/replay/
+
+# Anywhere
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest-cache-files-*/
+.venv/
+.env

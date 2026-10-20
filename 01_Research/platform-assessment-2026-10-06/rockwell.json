@@ -1,0 +1,184 @@
+{
+  "id": "rockwell",
+  "name": "Rockwell Automation",
+  "checked_on": "2026-10-06",
+  "summary": "Two routes remain distinct: GuardianAI analyses PowerFlex current locally; Augury documents multi-sensor diagnosis and a separate partnership connecting recommendations to Fiix MAX. Augury's fusion capability does not establish GuardianAI's inputs or a GuardianAI-to-Fiix pipeline.",
+  "flows": [
+    {
+      "name": "PowerFlex to GuardianAI",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "PowerFlex drive current",
+          "detail": "Supported 755/755T-family and 6000T drives provide three-phase current data for motor-current signature analysis of driven equipment.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Control-network edge host",
+          "detail": "GuardianAI runs on a local VM or edge device and connects to a drive by IP address or a routed CIP path.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "on_premises"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "GuardianAI",
+          "detail": "The machine-learning application learns operating baselines and detects and identifies deviations; engineers can label previously unidentified cases.",
+          "uses_ml": true,
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "on_premises"
+        },
+        {
+          "layer": "platform",
+          "label": "Maintenance alert or Logix tag",
+          "detail": "Users receive anomaly notifications; release 1.04 can optionally write diagnostic insights to a ControlLogix or CompactLogix UDT for downstream consumers.",
+          "source_ids": [
+            "s1",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Drive-based coverage is scoped to supported VFD applications; the cited materials do not establish fixed-speed motor coverage or a native Fiix connection."
+    },
+    {
+      "name": "Augury to Fiix maintenance workflow",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Augury multi-sensor evidence",
+          "detail": "Augury documents vibration, temperature, magnetic flux and ultrasound capabilities. The Fiix announcement does not specify which sensing configuration each integration uses.",
+          "source_ids": [
+            "s4",
+            "s5"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Augury diagnosis and Reliability Agent",
+          "detail": "Machine Health combines signals to corroborate findings, with ML baselines covering speed and load changes. The partnership names the Reliability Agent for recommendations.",
+          "uses_ml": true,
+          "source_ids": [
+            "s4",
+            "s5"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Fiix MAX and CMMS",
+          "detail": "Fiix MAX translates recommendations into maintenance workflows and work orders; FactoryTalk Optix is named in the joint portfolio.",
+          "source_ids": [
+            "s4"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "This is a separately announced partner route, not proof that GuardianAI findings pass through Augury or that every integration is generally available.",
+      "evidence_fusion": {
+        "status": "Documented fusion",
+        "inputs": ["Vibration", "Temperature", "Magnetic flux", "Ultrasound"],
+        "assessment": "Augury explicitly describes signals providing context and confirmation for one another in diagnosis. Its models account for operating speed and load.",
+        "limits": "These are Augury Machine Health capabilities. The Rockwell partnership does not establish every installed sensor, transport route or fusion configuration, and they must not be attributed to GuardianAI. Missing/conflicting-signal policy is not established here.",
+        "source_ids": ["s4", "s5"]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §7: GuardianAI uses PowerFlex drive electrical telemetry and runs at the edge.",
+      "assessment": "Rockwell documents the supported drives, local deployment and baseline-based machine-learning analysis.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-landscape-eight-majors.md §2 and conclusion: GuardianAI is a named deterministic algorithm, not machine learning.",
+      "assessment": "Rockwell explicitly calls GuardianAI a machine-learning supervisory application; the archive's all-vendors deterministic generalisation is unsound for this product.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §7: GuardianAI can write results to ControlLogix UDTs.",
+      "assessment": "Release 1.04 added optional writes to a custom UDT on ControlLogix or CompactLogix; this is an output route, not proof of automatic Fiix integration.",
+      "source_ids": [
+        "s3"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §7: Augury partnership proves Rockwell's internal vibration algorithms lagged and Augury diagnosis feeds Fiix MAX and FactoryTalk Optix.",
+      "assessment": "The July 2026 announcement supports the Reliability Agent-to-Fiix MAX partnership and names FactoryTalk Optix in the portfolio. It does not make a comparative algorithm-quality admission or specify a direct diagnostic feed to Optix.",
+      "source_ids": [
+        "s4"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-product-catalogue.md §7: GuardianAI is completely blind to all fixed-speed motors and passive gearboxes.",
+      "assessment": "Rockwell's cited GuardianAI documentation describes supported VFD-fed applications. The universal wording about all fixed-speed or passive equipment was not established by these sources.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Augury documents multi-sensor capabilities; the partnership announcement does not identify the installed sensor configuration, transport or deployment for a particular Augury-Fiix integration.",
+    "No cited source establishes GuardianAI-to-Fiix/MAX as a packaged direct connection."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "FactoryTalk Analytics GuardianAI Overview",
+      "url": "https://www.rockwellautomation.com/en-sg/docs/factorytalk-analytics-guardianai/1-01-00/online-help-ditamap/overview.html",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "Configure Drive, FactoryTalk Analytics GuardianAI 1.02",
+      "url": "https://www.rockwellautomation.com/en-us/docs/factorytalk-analytics-guardianai/1-02-00/online-help-ditamap/addnewdrive/config-drv.html",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "FactoryTalk Analytics GuardianAI release notes 1.04.00",
+      "url": "https://www.rockwellautomation.com/en-ro/docs/factorytalk-analytics-guardianai/current/releasenotes-ditamap/current.html",
+      "published": "2025-11",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "Rockwell Automation and Augury Partner to Improve Industrial Performance with Agentic AI",
+      "url": "https://www.rockwellautomation.com/en-us/company/news/press-releases/rockwell-automation-and-augury-partner-to-improve-industrial-performance-with-agentic-ai.html",
+      "published": "2026-07-23",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "Augury: Condition Monitoring for Industrial Rotating Equipment",
+      "url": "https://www.augury.com/use-cases/asset-condition-monitoring/condition-monitoring-for-industrial-rotating-equipment/",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

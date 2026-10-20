@@ -1,0 +1,49 @@
+{
+  "id": "ge-vernova",
+  "name": "GE Vernova",
+  "checked_on": "2026-10-06",
+  "summary": "SmartSignal combines operating measurements in multivariate diagnostic models; it does more than display separate sensor readings. APM Health is a related but distinct condition-monitoring path. Exact model internals and site-specific integration remain outside the reviewed evidence.",
+  "flows": [
+    {
+      "name": "SmartSignal predictive analytics",
+      "steps": [
+        {"layer": "sources", "label": "Machine sensor data", "detail": "Operating measurements such as load, temperature, pressure and vibration feed asset-specific models; the vendor does not prescribe a single sensor brand.", "source_ids": ["s1"]},
+        {"layer": "diagnostics", "label": "SmartSignal: combined sensor evidence", "detail": "Multivariate AI/ML models estimate expected readings across operating conditions; related sensor deviations and expert-defined failure modes support diagnosis.", "source_ids": ["s2", "s6"], "uses_ml": true},
+        {"layer": "platform", "label": "SmartSignal / APM view", "detail": "Users review alerts in SmartSignal; when integrated with APM, outputs contribute to health dashboards and reliability activities.", "source_ids": ["s2"]}
+      ],
+      "caveat": "SmartSignal is offered independently or as an APM pillar. Proficy Historian, Mark VIe and a cloud provider are not required stages in every deployment.",
+      "evidence_fusion": {
+        "status": "Documented fusion",
+        "inputs": ["Vibration", "Temperatures", "Pressures", "Load and other operating measurements"],
+        "assessment": "At the analytics layer, multivariate models relate sensor readings to operating conditions. GE demonstrates pressure and temperature deviations together narrowing a diagnostic advisory.",
+        "limits": "Vendor documentation establishes combined analysis, not independent accuracy. Exact input selection and handling of missing or conflicting signals require deployment-specific evidence.",
+        "source_ids": ["s1", "s2", "s6"]
+      }
+    },
+    {
+      "name": "APM Health condition monitoring",
+      "steps": [
+        {"layer": "sources", "label": "Field and route evidence", "detail": "APM Health can combine sensors, OT/IT systems, historians and operator rounds.", "source_ids": ["s3"]},
+        {"layer": "diagnostics", "label": "Health indicators", "detail": "Defined performance rules create descriptive alerts; this path does not require SmartSignal model inference.", "source_ids": ["s3"]},
+        {"layer": "platform", "label": "Rounds and work planning", "detail": "Health Manager, Rounds Pro, eLogs and recommendations to EAM systems support operator and maintenance decisions.", "source_ids": ["s3"]}
+      ],
+      "caveat": "APM Health and SmartSignal can complement each other, but the cited pages do not make every feature a default installation."
+    }
+  ],
+  "findings": [
+    {"status": "Corrected", "archived_claim": "vendor-product-catalogue.md §6 and vendor-landscape-eight-majors.md §2: SmartSignal is specifically MSET plus empirical nonlinear regression and 'rather than deep neural networks'", "assessment": "Current GE Vernova material supports similarity-based modeling, healthy-history empirical models and residual analysis. It does not substantiate MSET as the specific current algorithm or rule out neural methods throughout the product.", "source_ids": ["s1", "s2", "s4"]},
+    {"status": "Corrected", "archived_claim": "vendor-landscape-eight-majors.md §2: 'Not one of these is machine learning'", "assessment": "GE Vernova explicitly calls SmartSignal's digital twin blueprints AI/ML-driven and describes trained machine learning analytics. The categorical claim is false for SmartSignal.", "source_ids": ["s2"]},
+    {"status": "Corrected", "archived_claim": "vendor-product-catalogue.md §6: '19,500+ pre-configured failure-mode blueprints'", "assessment": "The current product page says precursor signatures draw on data from over 19,500 assets. It separately describes analytic blueprints for equipment classes; the 19,500 count should not be relabeled as failure-mode blueprints.", "source_ids": ["s2"]},
+    {"status": "Confirmed", "archived_claim": "vendor-product-catalogue.md §6: SmartSignal covers 350+ equipment types and time-to-action analysis", "assessment": "The current product page states analytics for 350+ equipment types and describes time-to-action forecasting.", "source_ids": ["s2"]},
+    {"status": "Unverified", "archived_claim": "vendor-product-catalogue.md §6: Proficy Historian is the on-prem store for air-gapped SmartSignal sites", "assessment": "GE Vernova sells Proficy Historian for cloud or on-prem use, but the cited product pages do not establish it as SmartSignal's required or exclusive store.", "source_ids": ["s2", "s5"]}
+  ],
+  "unknowns": ["The current public pages do not disclose SmartSignal model internals enough to identify a single precise algorithm such as MSET.", "Site-specific ingestion connectors, persistence, hosting and alert validation procedures require deployment documentation."],
+  "sources": [
+    {"id": "s1", "title": "How Early Bearing Fault Detection on a Wind Turbine Prevented a $14M Failure", "url": "https://www.gevernova.com/software/blog/early-bearing-fault-detection-wind-turbine-prevents-14M-failure", "published": "2026-06-15", "accessed": "2026-10-06"},
+    {"id": "s2", "title": "SmartSignal Predictive Analytics", "url": "https://www.gevernova.com/software/products/asset-performance-management/equipment-downtime-predictive-analytics", "published": "Not stated", "accessed": "2026-10-06"},
+    {"id": "s3", "title": "APM Health condition monitoring", "url": "https://www.gevernova.com/software/products/asset-performance-management/condition-monitoring", "published": "Not stated", "accessed": "2026-10-06"},
+    {"id": "s4", "title": "Digital Twin Technology", "url": "https://www.gevernova.com/software/innovation/digital-twin-technology", "published": "Not stated", "accessed": "2026-10-06"},
+    {"id": "s5", "title": "Proficy Historian", "url": "https://www.gevernova.com/software/products/proficy/historian", "published": "Not stated", "accessed": "2026-10-06"},
+    {"id": "s6", "title": "SmartSignal and AWS advanced asset maintenance webinar", "url": "https://www.gevernova.com/software/resources/webinar/smartsignal-aws-advanced-asset-maintenance-webinar", "published": "Not stated", "accessed": "2026-10-06"}
+  ]
+}

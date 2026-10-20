@@ -1,0 +1,179 @@
+{
+  "id": "skf",
+  "name": "SKF",
+  "checked_on": "2026-10-06",
+  "summary": "SKF documents separate wireless and wired vibration-monitoring routes into @ptitude Observer; @ptitude Analyst remains a parallel periodic-data product. Baker Instruments is now Megger-owned.",
+  "flows": [
+    {
+      "name": "Enlight Collect IMx-1 wireless monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "IMx-1 sensor",
+          "detail": "Battery sensor measures vibration and temperature, including acceleration enveloping.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Mesh and gateway",
+          "detail": "Low-energy mesh carries readings to a gateway; Ethernet, Wi-Fi or mobile backhaul can connect to the host.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "edge"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "@ptitude Observer",
+          "detail": "The documented host software trends, visualizes and analyzes the measurements.",
+          "source_ids": [
+            "s1",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "SKF monitoring",
+          "detail": "Site users or SKF monitoring services review the machine information and diagnostics.",
+          "source_ids": [
+            "s1",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "SKF also promotes Enlight AI and Enlight Centre, but the public pages do not establish a mandatory IMx-1-to-Aptitude Insight route."
+    },
+    {
+      "name": "Wired IMx monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "IMx-8 / IMx-16",
+          "detail": "Hardwired online modules collect vibration and other machinery-condition signals.",
+          "source_ids": [
+            "s5"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Online module",
+          "detail": "Continuous acquisition at the equipment feeds the monitoring software; deployment wiring varies by site.",
+          "source_ids": [
+            "s5",
+            "s3"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "@ptitude Observer",
+          "detail": "Observer manages and analyzes online measurements.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Condition review",
+          "detail": "Users review trends, diagnostics and exceptions in the software.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "IMx-M is a separate protection system with shutdown outputs; it should not be drawn as the normal endpoint of these diagnostic flows."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §2: IMx-1 mesh sensors and @ptitude Observer.",
+      "assessment": "SKF's own system description explicitly links IMx-1 sensors, mesh gateway and @ptitude Observer host software.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §2: Baker Instrument line listed as an SKF product.",
+      "assessment": "Megger acquired Baker Instruments from SKF in October 2018. Baker is historical SKF context, not a current SKF product line.",
+      "source_ids": [
+        "s6"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §2: @ptitude Observer → Aptitude Insight is implied as one software chain.",
+      "assessment": "SKF identifies Observer and Analyst as members of the @ptitude suite and describes them as parallel developments. The cited current SKF sources do not establish an Observer-to-'Aptitude Insight' succession or required hop.",
+      "source_ids": [
+        "s3",
+        "s4"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §1: IMx-M as an API 670 protection rack distinct from IMx-8/16 monitoring.",
+      "assessment": "SKF describes IMx-M as a machinery shutdown/protection system with API 670 compliance, and IMx-8/16 as online monitoring modules.",
+      "source_ids": [
+        "s5"
+      ]
+    }
+  ],
+  "unknowns": [
+    "The current official SKF pages reviewed do not verify 'Aptitude Insight' as a named successor to @ptitude Observer or its deployment modes.",
+    "Internal hosting, databases and model implementations behind SKF cloud services are not publicly mapped by these sources."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "The SKF Enlight Collect System",
+      "url": "https://cdn.skfmediahub.skf.com/api/public/0968978c13a3b341/pdf_preview_medium/0968978c13a3b341_pdf_preview_medium.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "SKF Enlight Collect IMx-1 System User Manual",
+      "url": "https://cdn.skfmediahub.skf.com/api/public/0901d19680a80626/pdf_preview_medium/SKF_Enlight_Collect_IMx-1_System_user_manual_%28rev_L%29_pdf_preview_medium.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "SKF @ptitude Observer User Manual",
+      "url": "https://cdn.skfmediahub.skf.com/api/public/0901d19680b2d54c/pdf_preview_medium/0901d19680b2d54c_pdf_preview_medium.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "SKF Connected Technologies Services",
+      "url": "https://us.promo.skf.com/acton/media/22336/connected-technologies-services",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "SKF Connected Technologies Hardware",
+      "url": "https://us.promo.skf.com/acton/media/22336/connected-technologies-hardware",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "Megger welcomes Baker Instruments to the family",
+      "url": "https://www.megger.com/en/et-online/october-2018/megger-welcomes-baker-instruments-to-the-family%21",
+      "published": "2018-10",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

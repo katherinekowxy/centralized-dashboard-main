@@ -1,0 +1,231 @@
+{
+  "id": "abb",
+  "name": "ABB",
+  "checked_on": "2026-10-06",
+  "summary": "ABB publicly describes Smart Sensor/Digital Powertrain, Genix APM and Samotics-based electrical-signature monitoring as related offerings with distinct acquisition and analysis paths, not one required stack.",
+  "flows": [
+    {
+      "name": "Smart Sensor motor monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Ability Smart Sensor",
+          "detail": "Motor-mounted sensor captures operating-condition measurements.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Bluetooth handoff",
+          "detail": "Bluetooth Low Energy sends data through a phone or Bluetooth gateway to ABB's secure service.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "ABB Ability",
+          "detail": "Cloud-side algorithms turn measurements into condition information and trends.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "cloud"
+        },
+        {
+          "layer": "platform",
+          "label": "Portal and app",
+          "detail": "Maintenance users see condition and trends in ABB's app or portal.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Digital Powertrain Insights is ABB's current self-service powertrain platform; the sources do not establish that every Smart Sensor installation runs through Genix."
+    },
+    {
+      "name": "Genix APM for OT assets",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Plant OT data",
+          "detail": "APM Predict connects to control-system publishers, OPC UA servers or Modbus TCP devices.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "routing",
+          "label": "APM Predict at edge",
+          "detail": "ABB describes condition monitoring as a native edge application in the OT landscape.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "edge"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Genix APM",
+          "detail": "Prebuilt asset models and configurable rules or AI/ML models support condition and fault assessment.",
+          "source_ids": [
+            "s3",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Maintenance workplace",
+          "detail": "Users review condition notifications, recommendations and asset context; Perform 360 can combine CMMS and OT data.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Genix is a separate APM suite. No mandatory Smart Sensor or ESA feed into Genix was verified."
+    },
+    {
+      "name": "Drive-embedded ESA service",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "ABB drive electrical data",
+          "detail": "Modernized ACS600/ACS800 drives capture electrical data from the powertrain.",
+          "source_ids": [
+            "s5"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Embedded ESA",
+          "detail": "ABB says Samotics-powered ESA is embedded in those legacy drive upgrades.",
+          "source_ids": [
+            "s5"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Samotics analytics",
+          "detail": "The partner's analytics interpret electrical signatures into asset-condition insights.",
+          "source_ids": [
+            "s5",
+            "s6"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "ABB service advice",
+          "detail": "ABB's expert network supplies actionable recommendations to industrial users.",
+          "source_ids": [
+            "s5"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "ABB's 2025 launch initially named ACS600 and ACS800 modernization; it does not prove ESA is firmware in every ABB variable-speed drive."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §4: Smart Sensor to phone or gateway and cloud condition view.",
+      "assessment": "ABB documents Bluetooth Low Energy to a phone or gateway, secure service analysis, and app/portal display.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §4: Drive-as-a-Sensor (ESA) is firmware using the VSD's own sensors, with Samotics algorithms.",
+      "assessment": "The partnership is real, and ABB announced Samotics-powered ESA embedded in upgraded ACS600/ACS800 drives in 2025. The archived statement overgeneralizes this as a standard firmware capability of VSDs broadly.",
+      "source_ids": [
+        "s5",
+        "s6"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §4: Genix APM has Predict, Predict 360, Perform 360 and Assess 360 modules.",
+      "assessment": "ABB's product description confirms those separate modules and the OT/IT/ET integration role.",
+      "source_ids": [
+        "s3",
+        "s4"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §4: Genix Predict 360 has 120+ pre-built physics models.",
+      "assessment": "The ABB brochure describes configurable models and 40+ prebuilt performance models under Perform 360. It does not substantiate 120+ prebuilt physics models for Predict 360.",
+      "source_ids": [
+        "s4"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-product-catalogue.md §4: Mahalanobis/PCA residual scoring, ONNX deployment and a single Azure cloud for Genix.",
+      "assessment": "The official ABB product sources reviewed describe rules and AI/ML generally, but do not establish those exact algorithms, model format or universal cloud deployment.",
+      "source_ids": [
+        "s3",
+        "s4"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Whether and how Smart Sensor, Digital Powertrain Insights, Samotics ESA and Genix are joined in a particular customer deployment is configuration-specific.",
+    "The internal data stores and model implementations for these ABB services are not specified in the cited sources."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "ABB Ability Smart Sensor Condition Monitoring",
+      "url": "https://library.e.abb.com/public/c553755e8ed241ab8e703e066d85991c/BR268.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "ABB Ability Digital Powertrain Insights",
+      "url": "https://www.abb.com/global/en/areas/motion/services/asset-health-and-monitoring/abb-ability-digital-powertrain-insights",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "ABB Asset performance management",
+      "url": "https://new.abb.com/news/detail/91195/asset-performance-management",
+      "published": "2022-05",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "ABB Ability Genix APM Suite brochure",
+      "url": "https://library.e.abb.com/public/2d016171d5d14734bd601f30fdc4cdcb/ABB_Ability_Genix_APM_Brochure_V3.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "ABB launches embedded ESA technology in drives",
+      "url": "https://new.abb.com/news/detail/130546/abb-launches-embedded-esa-technology-in-drives-turning-modernization-into-a-digital-catalyst",
+      "published": "2025-11-03",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "ABB partners with Samotics to expand condition monitoring",
+      "url": "https://new.abb.com/news/detail/95017/abb-partners-with-samotics-to-expand-its-condition-monitoring-services",
+      "published": "2022-09-22",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

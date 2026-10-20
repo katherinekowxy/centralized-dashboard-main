@@ -1,0 +1,195 @@
+{
+  "id": "schneider",
+  "name": "Schneider Electric",
+  "checked_on": "2026-10-06",
+  "summary": "Schneider publicly documents a TH110 switchgear thermal-monitoring route into EcoStruxure services. Rotating-machinery analysis is a separate route through equipment measurements and AVEVA Predictive Analytics; TH110 is not a vibration input.",
+  "flows": [
+    {
+      "name": "TH110 electrical thermal monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "PowerLogic TH110",
+          "detail": "Batteryless, current-harvesting sensor measures electrical conductor and connection temperature using ZigBee Green Power.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Panel Server or concentrator",
+          "detail": "EcoStruxure Panel Server or Harmony ZBRN32 collects TH110/CL110 wireless sensor data, depending on the switchgear configuration.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "edge"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Asset Advisor",
+          "detail": "Schneider's documented connected-service architecture passes recorded data to EcoStruxure Asset Advisor for electrical-asset condition monitoring.",
+          "source_ids": [
+            "s2",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Service expert notification",
+          "detail": "Connected Service Hub experts interpret critical anomalies and proactively notify customers.",
+          "source_ids": [
+            "s2",
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "This flow concerns electrical thermal risk; it does not establish mechanical vibration diagnosis or an automatic AVEVA connection."
+    },
+    {
+      "name": "AVEVA rotating-equipment analytics",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Existing machinery sensors",
+          "detail": "A documented customer deployment used motor speed, temperature and bearing-vibration measurements gathered with SCADA and sensors.",
+          "source_ids": [
+            "s4"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "routing",
+          "label": "SCADA or historian data",
+          "detail": "AVEVA Predictive Analytics can integrate with existing historian systems; the customer example integrated SCADA and sensor data.",
+          "source_ids": [
+            "s4",
+            "s5"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "AVEVA Predictive Analytics",
+          "detail": "Uses no-code AI and machine-learning models to detect deviations in equipment measurements and provide early warning.",
+          "uses_ml": true,
+          "source_ids": [
+            "s4",
+            "s5",
+            "s6"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Reliability investigation",
+          "detail": "Alerts and diagnostic views support maintenance decisions; the exact work-order integration depends on deployment.",
+          "source_ids": [
+            "s4",
+            "s5"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "AVEVA is a separate software route. The cited customer case does not show TH110 feeding its mechanical model."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §8: TH110 is a battery-free, energy-harvesting thermal sensor for electrical distribution.",
+      "assessment": "Schneider's TH110 manual confirms thermal measurement, electromagnetic energy harvesting and ZigBee Green Power; it is not a vibration sensor.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §8: TH110 has no battery-replacement outage, ever.",
+      "assessment": "The absence of a battery is supported, but the perpetual no-outage statement is broader than the vendor documentation; installation, faults and other maintenance remain possible.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §8: EcoStruxure Asset Advisor handles connected electrical asset health and remote experts.",
+      "assessment": "Schneider describes a TH110/CL110-to-Panel-Server-to-Asset-Advisor path and Connected Service Hub review.",
+      "source_ids": [
+        "s2",
+        "s3"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §8: Schneider has no rotating-machinery health of its own and mechanical health only arrives through third-party vibration feeds into AVEVA.",
+      "assessment": "Schneider markets Asset Advisor for drives and rotating equipment; AVEVA also supports machinery measurements, including vibration. An exclusive AVEVA-only route and a universal absence of Schneider mechanical offerings are not supported.",
+      "source_ids": [
+        "s3",
+        "s4",
+        "s5"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-landscape-eight-majors.md §2: TH110 analysis is fixed thresholds plus load-compensated differential curves; AVEVA uses a specifically named OPTiCS algorithm in every deployment.",
+      "assessment": "These public sources support thermal measurements and multivariate predictive models, but do not establish those exact universal algorithm implementations.",
+      "source_ids": [
+        "s1",
+        "s4",
+        "s5"
+      ]
+    }
+  ],
+  "unknowns": [
+    "The cited public documents do not establish a TH110-to-AVEVA data path.",
+    "No comprehensive, current product inventory was established to prove the archive's absolute claims about lack of native vibration or API 670 hardware.",
+    "Exact Asset Advisor thermal rules and AVEVA model algorithms vary by product and deployment and were not established here."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "PowerLogic TH110 user guide",
+      "url": "https://www.se.com/hk/en/download/document/NVE62740/",
+      "published": "2022-04-07",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "Continuous Thermal Monitoring: Connected Products and Remote Services",
+      "url": "https://productinfo.se.com/esxp_digital_apps_nema/ctm/English/BM_ESXP_DG_Continuous_Thermal_Monitoring_NEMA_0001112278.xml/%24/ESXP_DG_CTM_DA_Connected_Remote_0001007274",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "EcoStruxure Asset Advisor, Schneider Electric Singapore",
+      "url": "https://www.se.com/sg/en/product-range/64477-ecostruxure-asset-advisor/",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "Çolakoğlu Metalurji AVEVA Predictive Analytics case study",
+      "url": "https://www.aveva.com/en/perspectives/success-stories/colakoglu/",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "AVEVA Predictive Analytics brochure",
+      "url": "https://www.aveva.com/content/dam/aveva/documents/delete-2024/brochure-aveva-predictive-analytics-02-20-3.pdf.coredownload.inline.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "AVEVA Predictive Analytics brochure - AI and ML capabilities",
+      "url": "https://www.aveva.com/content/dam/aveva/documents/perspectives/brochures/Brochure_PredictiveAnalytics.pdf.coredownload.inline.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

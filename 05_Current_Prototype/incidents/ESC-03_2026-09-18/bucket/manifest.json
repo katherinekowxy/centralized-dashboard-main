@@ -1,0 +1,183 @@
+{
+  "bucket_id": "INC-ESC03-20260918",
+  "title": "ESC-03 stoppage and lockout, Friday 18 September 2026 (evening peak)",
+  "synthetic": true,
+  "prepared_at": "2026-09-19T08:30:00+01:00",
+  "prepared_by": "Duty maintenance engineer, Northgate Station",
+  "site": {
+    "name": "Northgate Station",
+    "timezone": "Europe/London",
+    "utc_offset_on_these_dates": "+01:00 (BST)"
+  },
+  "asset": {
+    "asset_id": "ESC-03",
+    "aliases": {
+      "condition_monitoring": "NGS-ESC-03",
+      "controller": "ESC03",
+      "cmms": "ESC-03"
+    },
+    "profile": "asset_profile.md"
+  },
+  "sources": [
+    {
+      "source_id": "SRC-CM",
+      "file": "sensor_readings.csv",
+      "kind": "telemetry",
+      "system": "Condition-monitoring platform (retrofit gateway cm-gateway-07)",
+      "interface": "Platform export, CSV, long format",
+      "retrieved_at": "2026-09-19T08:12:00+01:00",
+      "retrieved_by": "Duty maintenance engineer",
+      "time_basis": "observed_at and ingested_at in UTC (ISO 8601, Z). Gateway clock is NTP-synchronised.",
+      "cadence": "One sample per point every 60 s at the minute mark; gearbox vibration is the RMS over the preceding minute. Uploaded in 5-minute batches.",
+      "columns": [
+        "reading_id",
+        "asset_ref",
+        "point_id",
+        "observed_at",
+        "ingested_at",
+        "value",
+        "unit",
+        "quality",
+        "operating_mode",
+        "source",
+        "schema_version"
+      ],
+      "points": [
+        {
+          "point_id": "step_speed_m_s",
+          "code": "SPD",
+          "unit": "m/s",
+          "origin": "controller",
+          "sampling": "instantaneous"
+        },
+        {
+          "point_id": "motor_current_a",
+          "code": "MCUR",
+          "unit": "A",
+          "origin": "gateway CT on motor cable, inverter output side",
+          "sampling": "instantaneous RMS magnitude"
+        },
+        {
+          "point_id": "passenger_flow_ppm",
+          "code": "FLOW",
+          "unit": "persons/min",
+          "origin": "gateway 3D people counter above upper landing",
+          "sampling": "count over the preceding minute"
+        },
+        {
+          "point_id": "handrail_left_pct",
+          "code": "HRL",
+          "unit": "% of step speed",
+          "origin": "controller",
+          "sampling": "instantaneous"
+        },
+        {
+          "point_id": "handrail_right_pct",
+          "code": "HRR",
+          "unit": "% of step speed",
+          "origin": "controller",
+          "sampling": "instantaneous"
+        },
+        {
+          "point_id": "gearbox_oil_temp_c",
+          "code": "GBT",
+          "unit": "°C",
+          "origin": "gateway sensor",
+          "sampling": "instantaneous"
+        },
+        {
+          "point_id": "gearbox_vibration_mm_s",
+          "code": "VIB",
+          "unit": "mm/s",
+          "origin": "gateway accelerometer on gearbox housing",
+          "sampling": "RMS velocity over the preceding minute"
+        },
+        {
+          "point_id": "supply_voltage_v",
+          "code": "VOLT",
+          "unit": "V",
+          "origin": "gateway, line to line at controller isolator",
+          "sampling": "instantaneous"
+        }
+      ],
+      "operating_mode_values": [
+        "running_up",
+        "running_down",
+        "stopped",
+        "fault"
+      ],
+      "known_issues": [
+        "Gap 2026-09-17T01:06Z to 01:24Z: gateway restarted for a scheduled firmware update; the unsent buffer was discarded.",
+        "Gap 2026-09-18T17:20Z to 17:59Z: gateway diagnostics report no cellular registration from 17:21:07Z, then a restart at 17:59:20Z after a supply interruption. The unsent buffer was discarded.",
+        "Batch 2026-09-16T10:55Z to 11:00Z was uploaded twice (second copy at 11:21:14Z). Duplicate reading_id values are present.",
+        "People counter accuracy degrades in dense crowds; values of 80 persons/min or more are flagged low_confidence and may undercount.",
+        "Handrail percentages are not applicable when the step band is not running (empty value, quality not_applicable)."
+      ],
+      "sha256": "a48ad0a46515b7449ba27f1eb955b9f7785fabc037e40a27513fd4ccb8ecce28",
+      "record_count": 37976,
+      "coverage": {
+        "start": "2026-09-15T23:00:00Z",
+        "end": "2026-09-19T07:00:00Z"
+      }
+    },
+    {
+      "source_id": "SRC-CTRL",
+      "file": "vendor_alarms.csv",
+      "kind": "event_log",
+      "system": "Escalator safety controller fault memory",
+      "interface": "Service-tool export to CSV",
+      "retrieved_at": "2026-09-19 08:25:37 (controller clock)",
+      "retrieved_by": "Duty maintenance engineer",
+      "time_basis": "controller_time is the controller's local clock with no timezone stored. The clock is set manually and is not NTP-synchronised; when it was last set is unknown.",
+      "capacity": "Newest 64 events; older events are overwritten. event_no is the controller's running counter.",
+      "columns": [
+        "event_no",
+        "controller_time",
+        "code",
+        "text",
+        "detail"
+      ],
+      "known_issues": [
+        "Events in the same second are listed in the order the controller recorded them.",
+        "The vendor manual and full code descriptions are not included; the text column is the controller's own short text."
+      ],
+      "sha256": "884bb7fe9f79b2c75e4cb689020fd80b1bc73726aad1b38ec710a21fe205559b",
+      "record_count": 64,
+      "coverage": {
+        "first_event_controller_time": "2026-09-14 16:30:44",
+        "last_event_controller_time": "2026-09-19 05:00:00"
+      }
+    },
+    {
+      "source_id": "SRC-CMMS",
+      "file": "maintenance_report_2026-09-04.md",
+      "kind": "maintenance_record",
+      "system": "CMMS work order WO-55218, contractor service report attachment",
+      "interface": "Document attachment, transcribed to Markdown",
+      "retrieved_at": "2026-09-19T08:15:00+01:00",
+      "retrieved_by": "Duty maintenance engineer",
+      "time_basis": "Local site time; dates written dd/mm/yyyy.",
+      "known_issues": [
+        "Contractor's own checklist; items not on the checklist may not be recorded."
+      ],
+      "sha256": "de6121a93ae6ea9c9e96ae9a2a500abe7f469484015e67dbedd27a54ee73d8c0"
+    },
+    {
+      "source_id": "SRC-CALLOUT",
+      "file": "technician_note_2026-09-18.txt",
+      "kind": "free_text_note",
+      "system": "Contractor call-out note CO-88412",
+      "interface": "Typed from the technician's notebook after the visit",
+      "retrieved_at": "2026-09-19T08:05:00+01:00",
+      "retrieved_by": "Duty maintenance engineer",
+      "time_basis": "Technician's own approximate local times.",
+      "known_issues": [
+        "Written after the event from notes; times are approximate."
+      ],
+      "sha256": "adc540b14b6394156f73d4897709e8e29898faa3978f19bfe1f53dcb99a45b51"
+    }
+  ],
+  "requested_not_received": [
+    "Station incident report for the passenger near-fall, and CCTV of the upper and lower landings (requested 2026-09-19 08:10 local)."
+  ]
+}

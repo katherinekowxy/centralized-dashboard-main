@@ -1,0 +1,101 @@
+{
+  "id": "samotics",
+  "name": "Samotics · SAM4",
+  "checked_on": "2026-10-06",
+  "summary": "SAM4 uses cabinet current and voltage to assess electrical faults and some mechanical or process faults through their effects on motor behaviour. Electrical sensing does not restrict detection to electrical failures.",
+  "flows": [
+    {
+      "name": "SAM4 cabinet-to-maintenance path",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Current + voltage at MCC",
+          "detail": "Cabinet measurement hardware captures motor electrical waveforms.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Data connection",
+          "detail": "Samotics documents cellular, Ethernet or Wi-Fi transmission to its platform.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "ESA + baseline analysis",
+          "detail": "Electrical spectra and operating history support diagnosis; mechanical and process faults can appear through load or torque effects on motor current. Load and speed provide context.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Findings → maintenance",
+          "detail": "Presentation / workflow: Evidence and recommended action reach the dashboard or connected workflow; the customer decides the response.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Conceptual public product path; supported motors, drive regimes and fault coverage require asset-fit review.",
+      "evidence_fusion": {
+        "status": "Electrical signature analysis",
+        "inputs": ["Motor current", "Voltage", "Operating history and load/speed context"],
+        "assessment": "Electrical signatures can carry indirect evidence of mechanical and process faults, including misalignment and cavitation, through their effects on the motor. Separate vibration or temperature sensors are not required for that principle.",
+        "limits": "This is not evidence of vibration/temperature sensor fusion. Detectability depends on the asset, drive regime, fault and its effect on the electrical signal; electrical sensing does not reveal every mechanical fault.",
+        "source_ids": ["s1", "s2"]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §1c / §10 describes Samotics as electrical signature analysis at the MCC.",
+      "assessment": "SAM4 acquires cabinet current and voltage. These signals can reveal electrical faults and indirect mechanical/process faults, so measurement type alone does not define the fault domain.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §1c says all listed ESA offerings are blind to fixed-speed non-VFD motors.",
+      "assessment": "Samotics documents direct-on-line, soft-starter and VFD configurations. The blanket exclusion is wrong; supported fault modes depend on the motor control type.",
+      "source_ids": [
+        "s2"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "The archived reports generalise vendor detection performance and algorithm families.",
+      "assessment": "Published product descriptions establish the method, not independently measured accuracy on this demo's assets.",
+      "source_ids": []
+    }
+  ],
+  "unknowns": [
+    "Cloud provider, internal databases and detailed model topology are not established here.",
+    "No independent accuracy assessment or installation design was performed."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Samotics — How SAM4 works",
+      "url": "https://samotics.com/how-it-works",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "Samotics — Motor control type",
+      "url": "https://help.samotics.com/en/articles/238385-motor-control-type",
+      "published": "2024-11-13",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

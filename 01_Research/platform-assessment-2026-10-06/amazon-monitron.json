@@ -1,0 +1,88 @@
+{
+  "id": "amazon-monitron",
+  "name": "Amazon Monitron · legacy access",
+  "checked_on": "2026-10-06",
+  "summary": "A sensor-to-cloud reference architecture with restricted customer availability.",
+  "flows": [
+    {
+      "name": "Documented Monitron monitoring path",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Vibration + temperature",
+          "detail": "Machine-mounted Monitron sensors collect measurements.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Monitron gateway",
+          "detail": "The gateway transfers sensor data to AWS Cloud.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "edge"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Monitron service",
+          "detail": "ML models and vibration standards support abnormal-condition detection.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "cloud"
+        },
+        {
+          "layer": "platform",
+          "label": "Mobile / web app",
+          "detail": "Presentation / workflow: Review conditions, acknowledge alerts and record feedback; device setup uses the mobile app.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Historical architecture reference: closed to new customers since 31 October 2024."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §10 groups Amazon Monitron with current plug-and-play wireless options.",
+      "assessment": "AWS records closure to new customers on 31 October 2024; existing customers may continue using the service. A product overview still being online does not establish availability to a new buyer.",
+      "source_ids": [
+        "s2"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §10 describes a wireless monitoring offering.",
+      "assessment": "The documented system combines sensors, a gateway, cloud analysis and user applications.",
+      "source_ids": [
+        "s1"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Internal service topology and model implementation are not established by the cited overview.",
+    "Hardware supply and contract support must be checked separately for an existing account."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "AWS — What is Amazon Monitron?",
+      "url": "https://docs.aws.amazon.com/Monitron/latest/user-guide/what-is-monitron.html",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "AWS — Monitron documentation history / customer closure",
+      "url": "https://docs.aws.amazon.com/Monitron/latest/user-guide/doc-history.html",
+      "published": "Closure entry: 2024-10-31; latest listed update: 2025-09-09",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

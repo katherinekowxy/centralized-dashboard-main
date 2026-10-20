@@ -1,0 +1,32 @@
+{
+  "map": "gbtb-bay-south-2026-02-15.jpg",
+  "width": 2599,
+  "height": 1772,
+  "measured": "2026-10-10, by eye on the full-resolution image; boxes are approximate",
+  "zones": [
+    {"zone_code": "GLD", "name": "Golden Garden", "map_no": 1, "kind": "garden", "box": [1555, 560, 1730, 787]},
+    {"zone_code": "CNP", "name": "The Canopy", "map_no": 2, "kind": "structure", "box": [1555, 445, 1612, 530]},
+    {"zone_code": "FDM", "name": "Flower Dome", "map_no": 3, "kind": "conservatory", "box": [1281, 285, 1600, 468]},
+    {"zone_code": "CFR", "name": "Cloud Forest", "map_no": 4, "kind": "conservatory", "box": [1611, 390, 1838, 592]},
+    {"zone_code": "FCK", "name": "Floral Clock", "map_no": 5, "kind": "structure", "box": [1460, 488, 1557, 552]},
+    {"zone_code": "SGV", "name": "Supertree Grove", "map_no": 6, "kind": "garden", "box": [1006, 478, 1388, 860]},
+    {"zone_code": "SKY", "name": "OCBC Skyway", "map_no": 7, "kind": "structure", "box": [1042, 586, 1296, 752]},
+    {"zone_code": "SOB", "name": "Supertree Observatory", "map_no": 8, "kind": "structure", "box": [1090, 476, 1228, 740]},
+    {"zone_code": "WOP", "name": "World of Plants", "map_no": 9, "kind": "garden", "box": [902, 608, 1500, 1030]},
+    {"zone_code": "HER", "name": "Heritage Gardens", "map_no": 15, "kind": "garden", "box": [870, 448, 1418, 766]},
+    {"zone_code": "MDW", "name": "The Meadow", "map_no": 20, "kind": "garden", "box": [630, 962, 818, 1100]},
+    {"zone_code": "SRN", "name": "Serene Garden", "map_no": 21, "kind": "garden", "box": [340, 998, 452, 1135]},
+    {"zone_code": "CHG", "name": "Far East Organization Children's Garden", "map_no": 23, "kind": "garden", "box": [1928, 572, 2042, 738]},
+    {"zone_code": "CYN", "name": "The Canyon", "map_no": 24, "kind": "garden", "box": [1815, 520, 1894, 597]},
+    {"zone_code": "SLV", "name": "Silver Garden", "map_no": 25, "kind": "garden", "box": [1076, 192, 1276, 406]},
+    {"zone_code": "FFN", "name": "Floral Fantasy", "map_no": 26, "kind": "structure", "box": [392, 713, 532, 815]},
+    {"zone_code": "ACT", "name": "Active Garden", "map_no": 27, "kind": "garden", "box": [800, 100, 1025, 312]},
+    {"zone_code": "KFW", "name": "Kingfisher Wetlands", "map_no": 28, "kind": "garden", "box": [2020, 800, 2210, 935]},
+    {"zone_code": "DFB", "name": "Dragonfly Bridge", "map_no": null, "kind": "bridge", "box": [830, 584, 896, 616]},
+    {"zone_code": "MDB", "name": "Meadow Bridge", "map_no": null, "kind": "bridge", "box": [558, 850, 607, 890]},
+    {"zone_code": "DFL", "name": "Dragonfly Lake", "map_no": null, "kind": "lake", "box": [584, 300, 1332, 868]},
+    {"zone_code": "KFL", "name": "Kingfisher Lake", "map_no": null, "kind": "lake", "box": [1913, 683, 2202, 867]},
+    {"zone_code": "BFP", "name": "Bayfront Plaza", "map_no": null, "kind": "plaza", "box": [600, 585, 762, 695]},
+    {"zone_code": "ENT", "name": "Main Entrance", "map_no": null, "kind": "plaza", "box": [1588, 790, 1692, 1005]}
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "id": "siemens",
+  "name": "Siemens",
+  "checked_on": "2026-10-06",
+  "summary": "Siemens documents distinct CONNECT 400/Drivetrain Analyzer, PLC-based SM 1281, and Senseye routes. The archived SAM GUARD attribution is wrong: Precognize/SAM GUARD belongs to SAMSON Group.",
+  "flows": [
+    {
+      "name": "SIMOTICS CONNECT 400 motor monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "CONNECT 400",
+          "detail": "Motor-mounted module measures vibration, temperature and magnetic field.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "Wi-Fi / HTTPS",
+          "detail": "Module transmits measurements over Wi-Fi to Drivetrain Analyzer Cloud using encrypted HTTPS.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Drivetrain Analyzer Cloud",
+          "detail": "The Insights Hub application analyzes drive-train operation and condition.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "cloud"
+        },
+        {
+          "layer": "platform",
+          "label": "Cloud asset view",
+          "detail": "Users view motor status, analysis and maintenance guidance in Drivetrain Analyzer Cloud.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "cloud"
+        }
+      ],
+      "caveat": "The documented destination is Drivetrain Analyzer Cloud, not automatically Senseye or a generic SIDRIVE IQ Fleet layer."
+    },
+    {
+      "name": "SIPLUS CMS1200 / SM 1281 PLC monitoring",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Vibration probes",
+          "detail": "Sensors supply vibration signals to the SM 1281 condition-monitoring module.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "S7-1200 backplane",
+          "detail": "SM 1281 is integrated with SIMATIC S7-1200 and configured in TIA Portal.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "SM 1281 module",
+          "detail": "Module performs vibration monitoring; library blocks expose status and recording controls to the PLC.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "platform",
+          "label": "PLC / HMI",
+          "detail": "The control program can use module status and traffic-light information for local presentation.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "on_premises"
+        }
+      ],
+      "caveat": "This is an automation-module route; the cited source does not make cloud upload or Senseye a required next hop."
+    },
+    {
+      "name": "Senseye predictive maintenance",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Existing machine data",
+          "detail": "Condition indicators and context can come from existing sensors or historians.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "routing",
+          "label": "Senseye ingestion",
+          "detail": "Supported routes include API, MQTT, email, object storage or direct historian connection.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Senseye insights",
+          "detail": "Analytics assess measures; an Attention Index scores the asset's need for review.",
+          "source_ids": [
+            "s3",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "platform",
+          "label": "Cases",
+          "detail": "A medium or high Attention Index opens a case with supporting insights for maintenance review.",
+          "source_ids": [
+            "s4"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Senseye is a separate cloud application that can use existing data; no required CONNECT 400 or SM 1281 feed is documented."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §5: CONNECT 400 uses Wi-Fi and reports into Siemens motor-monitoring software.",
+      "assessment": "The Siemens manual confirms Wi-Fi / HTTPS transmission into the Insights Hub application Drivetrain Analyzer Cloud.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §5: SM 1281 is an S7-1200/TIA Portal condition-monitoring module.",
+      "assessment": "Siemens' application example shows SM 1281 in S7-1200 and its TIA Portal library, including status and raw-data functions.",
+      "source_ids": [
+        "s2"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §5: Senseye uses an Attention Index for case prioritization.",
+      "assessment": "Siemens' developer documentation says the index is an ML-based score and medium/high levels create cases with evidence.",
+      "source_ids": [
+        "s4"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §5 and vendor-landscape-eight-majors.md: SAMguard (ex-Precognize) listed as Siemens.",
+      "assessment": "SAMSON says it acquired Visual Process/Precognize in 2018 and offers SAM GUARD. Its own material identifies Precognize as a SAMSON company; SAM GUARD should not be mapped as Siemens.",
+      "source_ids": [
+        "s5",
+        "s6"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-product-catalogue.md §5: Senseye Attention Index = anomaly probability × degradation rate × asset criticality, with automated RUL.",
+      "assessment": "Siemens confirms an ML-based Attention Index and cases, but the reviewed developer pages do not publish that formula or establish RUL as an obligatory stage in this flow.",
+      "source_ids": [
+        "s3",
+        "s4"
+      ]
+    }
+  ],
+  "unknowns": [
+    "An automatic integration between CONNECT 400/Drivetrain Analyzer Cloud, SM 1281 and Senseye is not established by the reviewed official sources.",
+    "Senseye's proprietary scoring model and hosting internals are not disclosed in the cited developer documentation."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Siemens SIMOTICS CONNECT 400 Equipment Manual",
+      "url": "https://cache.industry.siemens.com/dl/files/928/109978928/att_1312200/v1/SIMOTICS_CONNECT_400_equip_man_0125_en-US.pdf",
+      "published": "2025-01",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "Monitoring of Machine Vibration Variables with SIPLUS CMS1200",
+      "url": "https://cache.industry.siemens.com/dl/files/750/109480750/att_1106817/v2/109480750_CMS_SM1281_RMS_DOC_V3_3_TIAP_V17_en.pdf",
+      "published": "2022-06",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "Siemens Senseye developer documentation: Machine Data",
+      "url": "https://developer.siemens.com/senseye/machine/index.html",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "Siemens Senseye developer documentation: Terminology",
+      "url": "https://developer.siemens.com/senseye/introduction/terminology.html",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "SAMSON acquires Visual Process and extends portfolio with SAM GUARD",
+      "url": "https://www.samsongroup.com/en/news/in-focus/details/news/press-releases/visual-processes/",
+      "published": "2018-06-11",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s6",
+      "title": "SAMSON: How SAM GUARD works",
+      "url": "https://usa.samsongroup.com/fileadmin/Subsidiaries/USA/downloads/SAM_GUARD_How_it_works.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}

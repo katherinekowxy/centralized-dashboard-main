@@ -1,0 +1,17 @@
+[theme]
+base = "dark"
+primaryColor = "#83aef3"
+backgroundColor = "#0b1524"
+secondaryBackgroundColor = "#142337"
+textColor = "#edf3f7"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+enableStaticServing = true  # serves static/ (the Bay South map) at app/static/
+
+[client]
+toolbarMode = "minimal"

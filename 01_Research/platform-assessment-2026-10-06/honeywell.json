@@ -1,0 +1,189 @@
+{
+  "id": "honeywell",
+  "name": "Honeywell",
+  "checked_on": "2026-10-06",
+  "summary": "Versatilis measures several sensing types and feeds on-premises Experion EHM. Forge Performance+ is a separate cloud-native APM offer. A direct HVT-to-Forge pipeline remains unverified.",
+  "flows": [
+    {
+      "name": "Versatilis to Experion EHM",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Versatilis HVT",
+          "detail": "Battery-powered transmitter measures vibration, acoustics, surface temperature and ambient conditions on equipment.",
+          "source_ids": [
+            "s1"
+          ],
+          "runs_at": "device"
+        },
+        {
+          "layer": "routing",
+          "label": "LoRaWAN gateway",
+          "detail": "BLE supports setup; a commercial LoRaWAN gateway sends measurements to an on-premises PC, where a ChirpStack VM decodes payloads and passes data by MQTT.",
+          "source_ids": [
+            "s1",
+            "s2"
+          ],
+          "runs_at": "on_premises"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Experion EHM VM",
+          "detail": "Trends parameters and alarms; licensed options add vibration analysis and health reporting.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "on_premises"
+        },
+        {
+          "layer": "platform",
+          "label": "EHM dashboard and reports",
+          "detail": "Users see site-to-asset hierarchy, transmitter drill-down, alarm views and asset-health reports.",
+          "source_ids": [
+            "s2"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "Honeywell documents this as an on-premises path. It does not establish that HVT data automatically feeds Forge Performance+.",
+      "evidence_fusion": {
+        "status": "Multiple sensing types",
+        "inputs": ["Vibration", "Acoustics", "Surface temperature", "Ambient temperature, pressure and humidity"],
+        "assessment": "Multiple measurement types and EHM analysis are documented. This establishes collection and diagnostic uses, but does not by itself establish automated fusion across them.",
+        "limits": "The reviewed product pages do not explain a cross-sensor model or its missing/conflicting-signal policy. Forge capabilities must not be assumed to be part of this EHM path.",
+        "source_ids": ["s1", "s2"]
+      }
+    },
+    {
+      "name": "Forge Performance+ Asset Performance",
+      "steps": [
+        {
+          "layer": "sources",
+          "label": "Plant operational data",
+          "detail": "Honeywell APM material names process historians, machine-condition monitoring and edge systems as data sources; availability depends on customer integration.",
+          "source_ids": [
+            "s3",
+            "s4"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "routing",
+          "label": "Customer integration",
+          "detail": "Connectivity, historian quality, P&IDs and asset registry are documented implementation dependencies; the precise site-to-cloud transport is not specified here.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        },
+        {
+          "layer": "diagnostics",
+          "label": "Forge Asset Performance",
+          "detail": "Cloud-native SaaS uses predictive and hybrid asset models for health, efficiency and risk analysis; Honeywell also documents support for customer machine-learning algorithms.",
+          "uses_ml": true,
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "cloud"
+        },
+        {
+          "layer": "platform",
+          "label": "Guided diagnosis and work orders",
+          "detail": "Product materials describe guided root-cause analysis, persona views and closed-loop work-order integration.",
+          "source_ids": [
+            "s3"
+          ],
+          "runs_at": "unknown"
+        }
+      ],
+      "caveat": "This is a general APM data route; the cited public pages do not specify HVT/Experion EHM as its mandatory input."
+    }
+  ],
+  "findings": [
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §9: Versatilis HVT senses vibration, acoustics, surface and ambient conditions and uses LoRaWAN with BLE commissioning.",
+      "assessment": "Honeywell product information confirms these measurements and communication modes; the sensor is battery-powered, with stated battery-life conditions.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "status": "Corrected",
+      "archived_claim": "vendor-product-catalogue.md §9 lists HVT and Forge together without an explicit integration path, inviting a single-stack reading.",
+      "assessment": "The specific published HVT architecture routes a LoRaWAN gateway through ChirpStack and MQTT to on-premises Experion EHM. No direct HVT-to-Forge connection was established.",
+      "source_ids": [
+        "s2",
+        "s3"
+      ]
+    },
+    {
+      "status": "Confirmed",
+      "archived_claim": "vendor-product-catalogue.md §9: Forge Asset Performance combines asset and process context for predictive analytics.",
+      "assessment": "Honeywell describes a cloud-native APM product with hybrid models, guided root-cause analysis and workflow integration; older APM material names historians and machine-condition systems as inputs.",
+      "source_ids": [
+        "s3",
+        "s4"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-product-catalogue.md §9 and vendor-landscape-eight-majors.md §7: Forge costs $400k–$1.2M up front, $200k–$750k/year and takes 6–18 months to deploy.",
+      "assessment": "No cited Honeywell price list supports these figures. Honeywell's current product FAQ instead gives a historical estimate of 6–8 weeks to analytics and under two months to insights for earlier Asset Sentinel implementations, with site dependencies; that is not a guaranteed Forge deployment duration.",
+      "source_ids": [
+        "s3"
+      ]
+    },
+    {
+      "status": "Unverified",
+      "archived_claim": "vendor-landscape-eight-majors.md §2: Honeywell's diagnostic path specifically uses PCA and partial least squares over UOP/CCC models.",
+      "assessment": "The current product material describes hybrid models without establishing these algorithms as universal. Honeywell separately describes CCC-informed Turbomachinery Advisor, which should not be equated with every Forge model.",
+      "source_ids": [
+        "s3",
+        "s5"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Whether Honeywell offers a supported, packaged Experion EHM-to-Forge Performance+ connector and under what licence.",
+    "Current public list pricing or representative quoted deployment costs for Forge Performance+ Asset Performance.",
+    "The algorithms, model inputs and cloud transport for a particular customer installation."
+  ],
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Honeywell Versatilis Transmitter",
+      "url": "https://process.honeywell.com/us/en/products/field-instruments/iot-sensor-solutions/equipment-health-monitoring-hvt/honeywell-versatilis-transmitter",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s2",
+      "title": "Honeywell Versatilis Experion EHM",
+      "url": "https://process.honeywell.com/us/en/products/field-instruments/iot-sensor-solutions/equipment-health-monitoring-hvt/honeywell-versatilis-experion-ehm",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s3",
+      "title": "Honeywell Forge Performance+ for Industrials Asset Performance",
+      "url": "https://process.honeywell.com/us/en/products/industrial-software/asset-reliability/honeywell-forge-performance-plus-for-industrials-asset-performance",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s4",
+      "title": "Honeywell Forge Asset Performance Management overview",
+      "url": "https://www.honeywell.com/content/dam/honeywellbt/en/documents/downloads/honeywell-forge/abm/Honeywell-Forge-APM.pdf",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    },
+    {
+      "id": "s5",
+      "title": "Honeywell Turbomachinery Advisor",
+      "url": "https://process.honeywell.com/us/en/products/industrial-software/asset-reliability/honeywell-forge-performance-plus-for-industrials-asset-performance/honeywell-turbomachinery-advisor",
+      "published": "Not stated",
+      "accessed": "2026-10-06"
+    }
+  ]
+}
