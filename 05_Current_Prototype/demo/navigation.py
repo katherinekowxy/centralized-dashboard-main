@@ -14,11 +14,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-SITE, REPLAY, MIXED, REFERENCE, NONE = "site", "replay", "mixed", "reference", "none"
+SITE, REPLAY, MIXED, IMPORTED, REFERENCE, NONE = "site", "replay", "mixed", "imported", "reference", "none"
 SOURCE_LABEL = {
     SITE: "Site operations data · demo / synthetic",
     REPLAY: "Diagnostics replay · demo / synthetic scenario",
     MIXED: "Site operations + diagnostics replay · demo / synthetic",
+    IMPORTED: "Imported files · not live",
     REFERENCE: "External reference material · not integrated",
     NONE: "",
 }
@@ -64,13 +65,16 @@ PAGES = (
     Page("work-orders", "Work orders & fault trends", "Faults & Investigations", REPLAY,
          "Work-order status: Open, In progress, Closed",
          "Which faults recur, and what corrective work is open?", replay_page="Maintenance"),
+    Page("fault-log", "Fault log (iSMM export)", "Faults & Investigations", IMPORTED,
+         "Fault state as at the export: Open, In progress, Completed, Cancelled. Impact as recorded, not a severity",
+         "Which real faults were open, and how did reporting and completion move?"),
     Page("investigations", "Investigation queue", "Faults & Investigations", REPLAY,
          "Detector cases with evidence, review decisions, data-quality issues and provenance",
          "Which cases need review, and what is the evidence?", replay_page="Investigate"),
     Page("event-power", "Event power", "Operations & Planning", SITE, "Socket state: In use, Free, Warning, Tripped, No supply",
          "Which event sockets are in use, and is any event without power?", module="event_power"),
     Page("calendar", "Operational calendar", "Operations & Planning", SITE,
-         "Planned permits, events and maintenance; clashes are marked",
+         "Imported event orders, or the demo's planned permits, events and maintenance with clashes marked",
          "What is planned this week, and where do permits and events overlap?", module="calendar_overview"),
     Page("rooms", "Meeting-room booking", "Operations & Planning", SITE, "Room availability: In use or Free",
          "Book or cancel a meeting room.", module="room_booking", secondary=True),

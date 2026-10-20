@@ -1065,10 +1065,83 @@ def ptw_page(page: navigation.Page) -> None:
     ptw_real.render(folder, real_permits)
 
 
+@st.cache_data(ttl=600, show_spinner="Reading asset, fault and event files...")
+def _real_registers(folder: str, stamp: tuple) -> dict:
+    from pathlib import Path as _Path
+
+    from demo.sources import registers
+
+    root = _Path(folder)
+    return {"assets": registers.load_assets(root), "faults": registers.load_faults(root), "events": registers.load_events(root)}
+
+
+def real_registers(folder: str) -> dict:
+    """The register, fault log and event workbook, re-read when a file changes or after ten minutes."""
+    from pathlib import Path as _Path
+
+    from demo.sources import registers
+
+    files = [_Path(folder) / name for name in (registers.ASSET_FILE, registers.FAULT_FILE, registers.EVENT_FILE)]
+    return _real_registers(folder, tuple((path.name, path.stat().st_mtime) for path in files if path.is_file()))
+
+
+def not_configured(what: str) -> None:
+    from demo import sources
+
+    st.info(f"{what} come from the real GBB Excel exports, which are not configured. Set the environment variable "
+            f"{sources.ENV_VAR} to the folder that holds them (or start with .\\start.ps1 -DataDir <folder>) and restart the app.")
+
+
+def fault_log_page() -> None:
+    from demo import real_pages, sources
+
+    page_header(navigation.PAGE["fault-log"], badge=brand.source_badge("imported").replace("Imported file", "Imported iSMM export · not live"))
+    folder = sources.data_dir()
+    if folder is None:
+        not_configured("Fault records")
+        return
+    real_pages.fault_log(real_registers(str(folder))["faults"])
+
+
+CALENDAR_SOURCES = ("Imported event orders", "Site demo (synthetic)")
+
+
+def calendar_page(page: navigation.Page) -> None:
+    """Operational calendar: imported event orders from the event workbook, or the synthetic site demo with its clashes."""
+    from datetime import datetime as _datetime
+
+    from demo import real_pages, sources
+    from demo.sources.ptw_forms import SGT as _SGT
+
+    folder = sources.data_dir()
+    default = CALENDAR_SOURCES[0] if folder else CALENDAR_SOURCES[1]
+    choice = st.session_state.get("calendar_source") or default
+    badge = (brand.source_badge("imported").replace("Imported file", "Imported event workbook · not live")
+             if choice == CALENDAR_SOURCES[0] else None)
+    page_header(page, badge=badge)
+    choice = st.segmented_control("Calendar source", CALENDAR_SOURCES, default=default, key="calendar_source") or default
+    if choice == CALENDAR_SOURCES[1]:
+        st.caption("Synthetic permits, event orders and maintenance on the site demo, with permit and event clashes marked.")
+        db, module = site_db(), site_module(page.module)
+        if db is None or module is None:
+            st.info("The site database could not be loaded.")
+            return
+        module.render(db)
+        return
+    if folder is None:
+        not_configured("Event orders")
+        return
+    st.caption("Event orders only: the event workbook has no permits or maintenance, so clashes are not computed for imported data.")
+    real_pages.event_orders(real_registers(str(folder))["events"], _datetime.now(_SGT).date())
+
+
 def site_page(page: navigation.Page) -> None:
     st.markdown(f"<style>{SITE_CSS}</style>", unsafe_allow_html=True)
     if page.key == "ptw-map":
         ptw_page(page)
+        return
+    if page.key == "calendar":
+        calendar_page(page)
         return
     page_header(page, title=page.module not in OWN_TITLE)
     db, module = site_db(), site_module(page.module)
@@ -1138,22 +1211,29 @@ def asset_overview_page() -> None:
         replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
     run = {**st.session_state["replay"], "imported_readings": [row for aid in asset_by_id for row in list_readings(aid)]}
     rows = (ac.site_rows(db) if db is not None else []) + replay_catalogue(run)
+    from demo import sources
+
+    folder = sources.data_dir()
+    if folder is not None:
+        real = real_registers(str(folder))
+        rows += ac.register_rows(real["assets"]["assets"], {fault["number"] for fault in real["faults"]["faults"]})
     counts = ac.category_counts(rows)
     st.markdown('<div class="ao-cats">' + "".join(
         f'<div class="ao-cat"><b>{item["total"]}</b><span>{esc(item["category"])}</span>'
-        f'<small>{item["site"]} site · {item["replay"]} replay'
+        f'<small>{item["site"]} site · {item["replay"]} replay' + (f' · {item["register"]} register' if item["register"] else "")
         + (f' · <em>{item["attention"]} need attention</em>' if item["attention"] else "") + "</small></div>" for item in counts)
         + "</div>", unsafe_allow_html=True)
     a, b, c = st.columns([3, 1.4, 1.2])
     with a:
         chosen = st.pills("Category", [item["category"] for item in counts], selection_mode="multi", key="ao_categories")
     with b:
-        sources = st.pills("Source", [ac.SITE, ac.REPLAY], selection_mode="multi", key="ao_sources")
+        sources_chosen = st.pills("Source", [s for s in (ac.SITE, ac.REPLAY, ac.REGISTER) if any(r["source"] == s for r in rows)],
+                                  selection_mode="multi", key="ao_sources")
     with c:
         attention = st.toggle("Needs attention only", key="ao_attention",
                               help="A Down, Warning or Offline operational state, or a detector finding: each in its own terms.")
     text = st.text_input("Search asset ID, name or location", key="ao_text")
-    shown = ac.select(rows, chosen, sources, attention, text)
+    shown = ac.select(rows, chosen, sources_chosen, attention, text)
     st.caption(f"{len(shown)} of {len(rows)} assets. Site assets and replay assets are different demonstration datasets; "
                "a cell a source does not report says so rather than borrowing a value.")
     if not shown:
@@ -1179,7 +1259,16 @@ def asset_overview_page() -> None:
         fields.append(("Work", row["work"]))
     st.markdown('<div class="ao-detail">' + "".join(f'<div><small>{esc(k)}</small><span>{esc(v)}</span></div>' for k, v in fields)
                 + "</div>", unsafe_allow_html=True)
-    if row["source"] == ac.SITE:
+    if row["source"] == ac.REGISTER:
+        if row["other_locations"]:
+            st.caption("Also recorded at: " + "; ".join(row["other_locations"]) + ". The register's rows disagree; both are shown.")
+        st.dataframe(pd.DataFrame([{"Record": r["id"], "Type": r["id_type"], "Date": r["date"].strftime("%d %b %Y %H:%M") if r["date"] else "Not readable",
+                                    "Trade": r["trade"], "Category": r["trade_category"], "Completed": r["completed"] or "Not recorded"}
+                                   for r in row["records"]]), hide_index=True, width="stretch")
+        st.caption(f"{row['linked_faults']} of these records match a fault number in the imported fault log. "
+                   "No readings exist for this asset, so no state or measurement is shown.")
+        st.markdown('<a href="?view=fault-log" target="_self">Fault log</a>', unsafe_allow_html=True)
+    elif row["source"] == ac.SITE:
         st.markdown(f'<a href="{esc(row["href"])}" target="_blank">Open the asset page (new tab)</a> · '
                     f'<a href="?view=asset-status" target="_self">Fleet operational status</a> · '
                     f'<a href="?view=electrical" target="_self">Electrical distribution</a>', unsafe_allow_html=True)
@@ -1410,7 +1499,7 @@ if current.module:
     site_page(current)
     st.stop()
 if not current.replay_page:
-    {"overview": overview_page, "assets": asset_overview_page, "displays": displays_page}[current.key]()
+    {"overview": overview_page, "assets": asset_overview_page, "displays": displays_page, "fault-log": fault_log_page}[current.key]()
     st.stop()
 
 # Diagnostics workbench: one replayed synthetic scenario shared by the replay-backed pages.

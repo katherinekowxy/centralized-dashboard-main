@@ -1,6 +1,6 @@
 # SignalDesk
 
-SignalDesk is a prototype monitoring dashboard for the Bay South gardens. It brings permits to work, asset status, event power, schedules and meeting rooms into one place, sized for a wall-mounted TV. It is an independent prototype, not an official Gardens by the Bay system, and **all of its data is synthetic**.
+SignalDesk is a prototype facilities Integrated Operations Centre (IOC) for Gardens by the Bay. It brings permits to work, asset status, faults, event power, schedules and meeting rooms into one place, for operators and for four 55-inch wall screens. It is a prototype, not a production system. Its built-in data is **synthetic** and labelled as such on every page. When a folder of the client's Excel exports is configured, some pages read those files read-only and label them as imported (see [Real data](#real-data-read-only)). [docs/ioc-redesign.md](05_Current_Prototype/docs/ioc-redesign.md) summarises the October 2026 redesign and what is still open.
 
 ## Run it
 
@@ -28,9 +28,10 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 | | Diagnostic findings (`diagnostics`) | Rule-based detector findings for the monitored demonstration assets | Replay |
 | | Engineering measurements (`asset-engineering`) | Earth leakage, trips, voltage, current and process trends for one asset; illustrative 3D schematic | Replay |
 | Faults & Investigations | Work orders & fault trends (`work-orders`) | 90-day CMMS history, recurring faults, work-order status | Replay |
+| | Fault log (`fault-log`) | The real iSMM fault export: states as at the export, weekly reported and completed (gaps shaded), open faults by building, Impact as recorded, validation report | Imported |
 | | Investigation queue (`investigations`) | Detector cases, evidence, reviews, data quality, exports | Replay |
 | Operations & Planning | Event power (`event-power`) | OG boxes, CEEform sockets and simulated event loads | Site |
-| | Operational calendar (`calendar`) | This week's permits, events and maintenance, with clashes marked | Site |
+| | Operational calendar (`calendar`) | **Imported event orders** from the event workbook by day, with power and kitchen needs, or the synthetic week of permits, events and maintenance with clashes marked | Imported or Site |
 | Other tools | Meeting-room booking (`rooms`) | Two room calendars with booking and cancelling | Site |
 | Administration & Integrations | Display management (`displays`) | Assign displays to the four screens, preview each screen and the 2×2 wall, and copy their addresses | Site + replay |
 | | Asset register & data import (`assets-import`) | Register an asset and validate a vendor CSV | Replay |
@@ -61,7 +62,7 @@ cd 05_Current_Prototype
 .\start.ps1 -DataDir "C:\Users\you\BI Report Dataset\GBB"
 ```
 
-or set the environment variable `GBB_DATA_DIR` to that folder. The files stay where they are. They are read when a page loads (and cached for ten minutes), never copied into this repository, and never written. Personal details on the forms (names, phone numbers, e-mail addresses) are not read. Imported records are labelled "imported, not live" and are never mixed with synthetic records. Location matching uses the client's Power BI alias table (`05_Current_Prototype/assets/maps/ptw_location_aliases.csv`). Building coordinates come from `Building Location.xlsx` and are approximate until verified there. `05_Current_Prototype/demo/sources/` documents the column mapping and validation rules.
+or set the environment variable `GBB_DATA_DIR` to that folder. The files stay where they are. They are read when a page loads (and cached for ten minutes), never copied into this repository, and never written. Personal details on the forms (names, phone numbers, e-mail addresses) are not read. Imported records are labelled "imported, not live" and are never mixed with synthetic records. Location matching uses the client's Power BI alias table (`05_Current_Prototype/assets/maps/ptw_location_aliases.csv`). Building coordinates come from `Building Location.xlsx` and are approximate until verified there. Asset overview also lists the real asset register, the Fault log reads the iSMM fault export, and the Operational calendar reads the event workbook. [05_Current_Prototype/docs/real-data.md](05_Current_Prototype/docs/real-data.md) lists every column read, what is deliberately not read, the validation rules and the limits.
 
 ## Tests
 
@@ -72,7 +73,7 @@ python -m pytest -q -p no:cacheprovider
 
 ## Good to know
 
-- **Synthetic data.** Every asset, reading, permit, contractor, event and booking is invented. Map tiles and zone outlines are © OpenStreetMap contributors (see `05_Current_Prototype/assets/maps/SOURCE.md`).
+- **Synthetic data.** Every built-in asset, reading, permit, contractor, event and booking is invented and labelled as demo data. Imported files are labelled separately and never mixed in. Map tiles and zone outlines are © OpenStreetMap contributors (see `05_Current_Prototype/assets/maps/SOURCE.md`).
 - **Runs on one machine.** It calls nothing outside except the map tiles and the map library. It has no logins.
 - **Optional AI.** An AI explanation of a case can be switched on with the settings in `05_Current_Prototype/.env.example`. Without them, the offline report is used.
 - **Where the data flows from** (Excel and PDF importers today, APIs later): [05_Current_Prototype/docs/site-data-sources.md](05_Current_Prototype/docs/site-data-sources.md).

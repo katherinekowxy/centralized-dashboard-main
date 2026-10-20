@@ -19,6 +19,7 @@
 /05_Current_Prototype/.test_tmp_imports/
 /05_Current_Prototype/data/*.sqlite3*
 /05_Current_Prototype/data/replay/
+/05_Current_Prototype/data/test-*/
 
 # Anywhere
 __pycache__/

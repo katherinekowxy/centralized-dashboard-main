@@ -5,6 +5,8 @@ Sources stay separate and labelled:
   Offline), or "Not monitored" for registered assets with no readings. No detector runs on these assets.
 - Diagnostics replay (demo/engine.py and demo/imports.py): rule-based diagnostic findings for five demonstration
   assets plus any registered through Data import. The replay reports no operational state.
+- Imported asset register (demo/sources/registers.py, real file, when GBB_DATA_DIR is set): identity, place and
+  associated fault or schedule records. It has no readings, so state, findings and measurements are unavailable.
 
 So each row has two status columns, and a source that does not report one shows why the cell is empty instead of a
 borrowed value. Categories are a display grouping of each source's own asset type; the original type is kept.
@@ -22,9 +24,10 @@ SITE_TYPE = {"CHL": "Chillers", "AHU": "Air handling units", "DB": "Distribution
              "LFT": "Lifts", "LGT": "Lighting", "OUT": "Outlets", "MST": "Misting", "OGB": "Event power", "CEE": "Event power"}
 REPLAY_TYPE = {"chiller": "Chillers", "ahu": "Air handling units", "distribution_board": "Distribution boards",
                "pump": "Pumps", "fan": "Fans"}
-SITE, REPLAY = "Site operations", "Diagnostics replay"
+SITE, REPLAY, REGISTER = "Site operations", "Diagnostics replay", "Imported asset register"
+REGISTER_TYPE = {"hvls": "Fans", "chiller": "Chillers", "ahu": "Air handling units", "db": "Distribution boards", "pump": "Pumps"}
 SITE_POINTS = "Voltage, current, power, power factor, energy"
-NOT_REPORTED = {SITE: "No detector on site data", REPLAY: "Not reported by the replay"}
+NOT_REPORTED = {SITE: "No detector on site data", REPLAY: "Not reported by the replay", REGISTER: "Not in the register (no readings)"}
 FINDING_WORD = {"alert": "Detector finding", "ok": "Checked, no finding", "idle": "Not assessed"}
 
 
@@ -73,6 +76,30 @@ def replay_row(asset: dict, status: str, headline: str, points: list[str], open_
             "criticality": asset.get("criticality") or "", "feed": freshness, "href": None}
 
 
+def register_rows(assets: list[dict], fault_numbers: set[str] | None = None) -> list[dict]:
+    """Assets from the imported register: identity, place and associated records only. The register has no readings,
+    so operational state, diagnostic findings and measurements are shown as unavailable, never estimated."""
+    rows = []
+    for asset in assets:
+        records = asset["records"]
+        kinds = {}
+        for record in records:
+            kinds[record["id_type"] or "Record"] = kinds.get(record["id_type"] or "Record", 0) + 1
+        latest = max((r["date"] for r in records if r["date"]), default=None)
+        linked = sum(1 for r in records if fault_numbers and r["id"] in fault_numbers)
+        work = ", ".join(f"{n} {kind.lower()} record{'s' if n != 1 else ''}" for kind, n in sorted(kinds.items()))
+        if latest:
+            work += f"; latest {latest:%d %b %Y}"
+        rows.append({"source": REGISTER, "asset_id": asset["tag"], "name": asset["description"] or asset["tag"],
+                     "category": REGISTER_TYPE.get(asset["category"].casefold(), asset["category"] or "Other") if asset["category"] else "Other",
+                     "type": asset["category"], "location": " / ".join(part for part in (asset["building"], asset["floor"], asset["room"]) if part),
+                     "state": None, "operational": NOT_REPORTED[REGISTER], "reason": "", "finding": NOT_REPORTED[REGISTER],
+                     "finding_key": None, "measurements": "Unavailable: the register holds no readings", "work": work,
+                     "criticality": "", "href": None, "records": records, "linked_faults": linked,
+                     "other_locations": asset.get("other_locations", []), "status": asset["status"]})
+    return rows
+
+
 def needs_attention(row: dict) -> bool:
     """A problem in the row's own terms: a problem operational state (site) or a detector finding (replay)."""
     return row["state"] in ("down", "warning", "offline") or row["finding_key"] == "alert"
@@ -92,8 +119,10 @@ def select(rows: list[dict], categories: list[str] | None = None, sources: list[
 
 def category_counts(rows: list[dict]) -> list[dict]:
     """Per category present: total, by source, and how many need attention in their own terms."""
-    present = [name for name in (*CATEGORIES, "Other") if any(row["category"] == name for row in rows)]
+    present = [name for name in (*CATEGORIES, *sorted({row["category"] for row in rows} - set(CATEGORIES) - {"Other"}), "Other")
+               if any(row["category"] == name for row in rows)]
     return [{"category": name, "total": sum(row["category"] == name for row in rows),
              "site": sum(row["category"] == name and row["source"] == SITE for row in rows),
              "replay": sum(row["category"] == name and row["source"] == REPLAY for row in rows),
+             "register": sum(row["category"] == name and row["source"] == REGISTER for row in rows),
              "attention": sum(row["category"] == name and needs_attention(row) for row in rows)} for name in present]
