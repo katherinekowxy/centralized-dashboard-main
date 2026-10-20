@@ -48,5 +48,5 @@ def test_app_lands_on_the_overview(monkeypatch) -> None:
     at = AppTest.from_file(str(APP), default_timeout=90).run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Needs attention" in markup and "Asset health" in markup and "Coming up" in markup and "Demo data" in markup
-    assert 'href="?view=ptw-map"' in markup
+    assert "Needs attention" in markup and "Asset health" in markup and "Demo data" in markup
+    assert "Set GBB_DATA_DIR" in markup  # without the export folder the page says so instead of showing empty figures

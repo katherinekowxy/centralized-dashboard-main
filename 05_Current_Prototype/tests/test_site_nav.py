@@ -27,12 +27,53 @@ def test_app_opens_on_site_overview_with_grouped_navigation() -> None:
     assert not at.exception
     assert at.query_params["view"] == ["overview"]
     assert at.button(key="nav-overview").proto.type == "primary"  # the current page is marked
+    visible_pages = [page for page in navigation.PAGES if page.client]
+    for page in visible_pages:
+        assert at.button(key=f"nav-{page.key}").label == page.label
+    assert "nav-assets" not in {button.key for button in at.button}
+    markup = "\n".join(item.value for item in at.markdown)
+    for area in {page.area for page in visible_pages}:
+        assert html.escape(area) in markup
+
+
+def test_internal_pages_appear_when_show_all_is_enabled() -> None:
+    at = AppTest.from_file(str(APP), default_timeout=60).run()
+    at.toggle(key="nav_all").set_value(True).run()
+    assert not at.exception
     for page in navigation.PAGES:
         assert at.button(key=f"nav-{page.key}").label == page.label
-    markup = "\n".join(item.value for item in at.markdown)
-    for area in navigation.AREAS:
-        assert html.escape(area) in markup
-    assert 'href="?view=ptw-map"' in markup  # the directory links to bookmarkable pages
+
+
+def test_demo_workspace_route_and_presentation_mode() -> None:
+    workspace = AppTest.from_file(str(APP), default_timeout=90)
+    workspace.query_params["view"] = "demo-workspace"
+    workspace.run()
+    assert not workspace.exception
+    assert workspace.button(key="nav-demo-workspace").label == "Display wall"
+    assert any("Display wall" in item.value for item in workspace.markdown)
+
+    presentation = AppTest.from_file(str(APP), default_timeout=90)
+    presentation.query_params["view"] = "demo-workspace"
+    presentation.query_params["presentation"] = "1"
+    presentation.run()
+    assert not presentation.exception
+    assert any(button.label == "Exit presentation" for button in presentation.button)
+    assert not any(button.key and button.key.startswith("nav-") for button in presentation.button)
+
+
+def test_embedded_module_route_hides_sidebar_widgets() -> None:
+    at = AppTest.from_file(str(APP), default_timeout=60)
+    at.query_params["view"] = "overview"
+    at.query_params["workspace_embed"] = "1"
+    at.run()
+    assert not at.exception
+    assert not any(button.key and button.key.startswith("nav-") for button in at.button)
+
+
+def test_app_handles_navigation_module_without_imported_constant(monkeypatch) -> None:
+    monkeypatch.delattr(navigation, "IMPORTED")
+    at = AppTest.from_file(str(APP), default_timeout=60).run()
+    assert not at.exception
 
 
 def test_a_view_url_opens_that_page_and_buttons_update_the_url(monkeypatch) -> None:
@@ -51,6 +92,7 @@ def test_a_view_url_opens_that_page_and_buttons_update_the_url(monkeypatch) -> N
 def test_site_dashboard_and_new_tab_detail_read_the_site_database(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "demo.site_db", FAKE_DB)
     at = AppTest.from_file(str(APP), default_timeout=60).run()
+    at.toggle(key="nav_all").set_value(True).run()
     at.button(key="nav-asset-status").click().run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)

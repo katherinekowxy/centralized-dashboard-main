@@ -1,8 +1,8 @@
-"""Site overview in the clean style: six figures, then a few short lists. Real files first, demo data only where no
-real source exists, and every figure says which it is in one short caption or a "Demo" tag.
+"""Site overview: the client's first screen. Six figures and a few short lists from the iSMM exports; demo figures
+appear only with internal pages switched on, tagged "Demo".
 
-Real sources (when GBB_DATA_DIR is set): iSMM contractor-work schedules, permit-to-work forms, the event workbook and
-the iSMM fault log (open at the end of its export). Demo sources: asset operational state and event power.
+iSMM's fault log also holds service requests and event support jobs. They are counted apart (registers.record_kind),
+and every figure here uses the same rule and window as the page it links to, so the numbers tally across pages.
 """
 
 from __future__ import annotations
@@ -14,119 +14,170 @@ from demo import brand, ui
 from demo.asset_state import SGT, ts
 
 DEMO = brand.demo_badge("Demo")
-AHEAD = 30  # days shown under "Coming up"
+AHEAD = 14  # days of events shown
 
 
 def _clock(value: Any) -> str:
     return ts(value).astimezone(SGT).strftime("%H:%M")
 
 
-def _hours(text: str) -> str:
-    """'10:00 AM - 5:30pm' as '10:00–17:30'; the written text when it cannot be read."""
-    from demo.sources.registers import parse_times
-
-    times = parse_times(text) if text else None
-    return f"{times[0]:%H:%M}–{times[1]:%H:%M}" if times else (text or "All day")
-
-
 def _short_day(day: date, today: date) -> str:
     return "Today" if day == today else "Tomorrow" if day == today + timedelta(days=1) else day.strftime("%a %d %b")
 
 
-def page_html(ctx: dict) -> str:
-    s, today, now = ctx["summary"], ctx["today"], ctx["now"]
-    states = s["states"]
-    attention = states["down"] + states["warning"] + states["offline"]
-    no_power = s["sockets"].get("down", 0) + s["sockets"].get("nosupply", 0)
-    real = ctx.get("real")
+def _age(since: datetime, now: datetime) -> str:
+    minutes = max(0, (now - since).total_seconds() / 60)
+    return f"{minutes:.0f} min" if minutes < 90 else f"{minutes / 60:.0f} h" if minutes < 48 * 60 else f"{minutes / 1440:.0f} d"
 
-    cards = []
-    if real:
-        on_site = real["on_site"]
-        cards += [
-            {"label": "Works on site today", "value": len(on_site), "caption": "iSMM schedules", "href": "?view=calendar"},
-            {"label": "Permits active now", "value": real["permits_active"], "caption": "Permit-to-work forms", "href": "?view=ptw-map"},
-            {"label": "Events today", "value": len(real["events_today"]), "caption": "Event orders", "href": "?view=calendar"},
-            {"label": "Open faults", "value": f'{real["open_faults"]:,}', "caption": f'iSMM fault log, as at {real["faults_to"]:%d %b %Y}',
-             "href": "?view=fault-log"},
-        ]
-    else:
-        cards += [{"label": "Permits active now", "value": s["permits"]["active"], "caption": "", "tag": DEMO, "href": "?view=ptw-map"},
-                  {"label": "Events today", "value": s["events_today"], "caption": "", "tag": DEMO, "href": "?view=event-power"}]
-    cards += [
-        {"label": "Assets needing attention", "value": attention, "caption": "Down, warning or offline", "tag": DEMO, "href": "?view=asset-status"},
-        {"label": "Event sockets without power", "value": no_power, "caption": "Tripped or no supply", "tag": DEMO, "href": "?view=event-power"},
-    ]
 
-    if real:
-        rows = [{"left": ui.date_cell(_hours(item["time_text"])), "main": item["title"],
-                 "sub": " · ".join(part for part in (item["building"], item["trade"]) if part)} for item in real["on_site"][:7]]
-        more = len(real["on_site"]) - 7
-        today_panel = ui.panel("On site today", ui.rows(rows, "No scheduled works today.")
-                               + (f'<div class="u-empty"><a href="?view=calendar" target="_self">+{more} more</a></div>' if more > 0 else ""),
-                               link=("Calendar", "?view=calendar"))
-        coming = sorted([(e["first_day"], e["title"], e["location"], "Event") for e in real["events_next"]]
-                        + [(w["start"], w["title"], w["building"], "Works") for w in real["works_next"]])[:7]
-        coming_panel = ui.panel("Coming up", ui.rows(
-            [{"left": ui.date_cell(_short_day(day, today)), "main": title, "sub": f"{kind} · {place}" if place else kind,
-              "right": ""} for day, title, place, kind in coming], "The latest schedule and event exports list nothing after today."), note=f"Next {AHEAD} days")
-    else:
-        rows = [{"left": ui.date_cell(_clock(item["start"])), "main": item.get("title") or item["label"],
-                 "sub": {"ptw": "Permit", "event": "Event", "maint": "Maintenance"}[item["kind"]]} for item in s["upcoming"][:7]]
-        today_panel = ui.panel("Coming up", ui.rows(rows, "Nothing planned."), note="Demo")
-        coming_panel = ""
+def _bars(counts: list[tuple[str, int]], colour: str) -> str:
+    if not counts:
+        return '<div class="u-empty">None.</div>'
+    peak = max(n for _, n in counts)
+    return '<ul class="u-rows">' + "".join(
+        f'<li><span class="u-main"><b>{ui.esc(name)}</b></span><span style="flex:0 0 45%;display:flex;align-items:center;gap:8px">'
+        f'<i style="display:block;height:8px;border-radius:99px;background:{colour};width:{n / peak * 100:.0f}%"></i>'
+        f'<span style="font-size:12px;font-weight:700">{n}</span></span></li>' for name, n in counts) + "</ul>"
 
+
+def demo_panels(summary: dict) -> str:
+    states = summary["states"]
     order = ("down", "warning", "offline", "idle", "operational")
     legend = "".join(f'<span>{brand.status_mark(brand.ASSET_STATE[k][0], brand.ASSET_STATE[k][2])}{brand.ASSET_STATE[k][1]}</span><b>{states[k]}</b>'
                      for k in order)
     health = ui.panel("Asset health", ui.bar([(states[k], brand.ASSET_STATE[k][0], brand.ASSET_STATE[k][1]) for k in order])
                       + f'<div class="u-legend">{legend}</div>', link=("Fleet status", "?view=asset-status"))
-    health = health.replace('<div class="u-panel-h"><span>Asset health</span>', f'<div class="u-panel-h"><span>Asset health {DEMO}</span>', 1)
-
-    attention_rows = [{"left": ui.pill({"down": "fault", "warning": "warn", "offline": "off"}.get(r["state"], "neutral") if r["state"] else "neutral", r["word"]),
-                       "main": r["what"], "sub": f'{r["where"]} · {r["why"]}' if r["why"] else r["where"], "href": r["href"]}
-                      for r in s["attention"][:6]]
-    attention_panel = ui.panel("Needs attention", ui.rows(attention_rows, "Nothing needs attention."), link=("Assets", "?view=assets"))
-    attention_panel = attention_panel.replace('<span>Needs attention</span>', f'<span>Needs attention {DEMO}</span>', 1)
-
-    panels = [today_panel, health, coming_panel] if coming_panel else [today_panel, health]
-    second = [attention_panel]
-    if real and real["faults_by_building"]:
-        top = real["faults_by_building"][:6]
-        peak = max(n for _, n in top)
-        fault_rows = "".join(f'<li><span class="u-main"><b>{ui.esc(name)}</b></span><span style="flex:0 0 45%;display:flex;align-items:center;gap:8px">'
-                             f'<i style="display:block;height:8px;border-radius:99px;background:{brand.SERIES[1]};width:{n / peak * 100:.0f}%"></i>'
-                             f'<span style="font-size:12px;font-weight:700">{n}</span></span></li>' for name, n in top)
-        second.append(ui.panel("Open faults by building", f'<ul class="u-rows">{fault_rows}</ul>', link=("Fault log", "?view=fault-log")))
-    return (ui.kpis(cards) + ui.grid(panels, "1.25fr 1fr 1.25fr" if len(panels) == 3 else "1.4fr 1fr")
-            + ui.grid(second, "1.4fr 1fr" if len(second) == 2 else "1fr"))
+    health = health.replace("<span>Asset health</span>", f"<span>Asset health {DEMO}</span>", 1)
+    rows = [{"left": ui.pill({"down": "fault", "warning": "warn", "offline": "off"}.get(r["state"], "neutral") if r["state"] else "neutral", r["word"]),
+             "main": r["what"], "sub": f'{r["where"]} · {r["why"]}' if r["why"] else r["where"], "href": r["href"]} for r in summary["attention"][:6]]
+    attention = ui.panel("Needs attention", ui.rows(rows, "Nothing needs attention."), link=("Assets", "?view=assets"))
+    attention = attention.replace("<span>Needs attention</span>", f"<span>Needs attention {DEMO}</span>", 1)
+    return ui.grid([attention, health], "1.4fr 1fr")
 
 
-def real_context(folder: str, registers_data: dict, permits_data: tuple | None, now: datetime) -> dict:
-    """Figures from the real files for the overview. ``registers_data`` comes from app.real_registers."""
+def sources_line(real: dict) -> str:
+    """One line saying when each export was taken, so nobody reads the page as live."""
+    parts = [f"{name} {stamp:%d %b %H:%M}" for name, stamp in real["as_at"] if stamp]
+    return "Data as at: " + " · ".join(parts) if parts else ""
+
+
+def page_html(ctx: dict) -> str:
+    real = ctx.get("real")
+    if not real:
+        return ui.kpis([{"label": "Real data", "value": "Not set", "caption": "Set GBB_DATA_DIR to the export folder"}]) + demo_panels(ctx["summary"])
+    f = real["faults"]
+    day = f["day"]
+    cards = [
+        {"label": "Open faults", "value": f["open"] + f["in_progress"], "caption": f"{f['in_progress']} being worked on · {f['over_30']} open over 30 days",
+         "href": "?view=fault-log", "dot": "#B42D2D" if f["open"] else None},
+        {"label": f"New jobs {day:%d %b}", "value": sum(f["today"].values()),
+         "caption": f"{f['today']['fault']} faults · {f['today']['request']} requests · {f['today']['event']} event", "href": "?view=fault-log"},
+        {"label": "Median time to site", "value": f["median"], "caption": "Faults, report to on-site, last 30 days", "href": "?view=fault-log"},
+        {"label": "Permits active today", "value": len(real["permits_today"]), "caption": f"{len({p['company'] for p in real['permits_today']})} companies on site",
+         "href": "?view=ptw-map"},
+        {"label": "Tool-box meetings", "value": real["toolbox_week"], "caption": f"Last 7 days · {real['toolbox_today']} today", "href": "?view=permits"},
+        {"label": "Spares out of stock", "value": real["stock_out"], "caption": f"{real['stock_low']} more below minimum", "href": "?view=spares",
+         "dot": "#B42D2D" if real["stock_out"] else None},
+    ]
+    open_rows = ui.rows([{"left": ui.pill("fault" if x["state"] == "open" else "warn", "Not started" if x["state"] == "open" else "In progress"),
+                          "main": x["what"], "sub": f'{x["building"]} · reported {_age(x["reported"], f["as_at"])} ago'}
+                         for x in f["open_list"][:7]], "No open faults.")
+    permit_rows = ui.rows([{"left": ui.date_cell(f"{p['start']:%d %b}–{p['end']:%d %b}"), "main": p["company"] or "Company not recorded",
+                            "sub": " · ".join(x for x in (p["trades"], site_short(p["site"])) if x),
+                            "right": ui.pill("warn" if p["special"] else "neutral", p["type"])}
+                           for p in real["permits_today"][:7]], "No permits active today.")
+    stock_rows = ui.rows([{"main": i["item"], "sub": i["store"], "right": ui.pill("fault", "Out of stock")} for i in real["stock_list"][:7]],
+                         "Nothing out of stock.")
+    power_rows = ui.rows([{"left": ui.date_cell(x["reported"].strftime("%a %d %b")), "main": x["what"],
+                           "sub": " · ".join(v for v in (x["building"], x["room"]) if v)} for x in real["power_jobs"][:6]],
+                         "No event power handovers in the last 7 days.")
+    split = f["week_split"]
+    html = ui.kpis(cards)
+    html += ui.grid([ui.panel("Open faults", open_rows, link=("Faults", "?view=fault-log")),
+                     ui.panel("Permits on site today", permit_rows, link=("Permit map", "?view=ptw-map")),
+                     ui.panel("Out of stock", stock_rows, link=("Inventories", "?view=spares"))], "1.2fr 1.2fr 1fr")
+    html += ui.grid([ui.panel("Event power handovers, last 7 days", power_rows, link=("Event power", "?view=event-power")),
+                     ui.panel("Faults by trade, last 7 days", _bars(f["by_trade"], brand.SERIES[0])
+                              + f'<div class="u-empty">Also in the last 7 days: {split["request"]} service requests and {split["event"]} event support jobs.</div>',
+                              link=("Faults", "?view=fault-log"))], "1.2fr 1fr")
+    if ctx.get("show_demo"):
+        html += demo_panels(ctx["summary"])
+    return html
+
+
+def events_needing_power(events: list[dict], today: date, ahead: int = AHEAD) -> list[dict]:
+    """Event orders over the next ``ahead`` days whose sheet asks for power, soonest first; long ranges say Running."""
     from demo.sources import registers
-    from demo.sources.ptw_forms import timing, unique
+
+    out = []
+    for event in registers.events_on(events, today, today + timedelta(days=ahead)):
+        if not (event["power"] or event["power_on"]):
+            continue
+        days = [d for d in (event["days"] or []) if d >= today]
+        running = event["days"] is None and event["first_day"] <= today
+        first = days[0] if days else max(event["first_day"], today)
+        out.append({**event, "when": "Running" if running else _short_day(first, today), "sort": (0 if running else 1, first)})
+    return sorted(out, key=lambda e: e["sort"])
+
+
+def real_context(data: dict, now: datetime) -> dict:
+    """Overview figures from app.real_registers(). Every figure uses the same rules as the page it links to."""
+    from demo.sources import ismm
 
     today = now.date()
-    schedules = registers_data["schedules"]["schedules"]
-    events = registers_data["events"]["events"]
-    faults = registers_data["faults"]
-    on_site = sorted(registers.schedules_on(schedules, today, today), key=lambda w: (w["time_text"] == "", w["time_text"], w["title"]))
-    week = today + timedelta(days=AHEAD)
-    works_next = [w for w in registers.schedules_on(schedules, today + timedelta(days=1), week) if w["start"] > today]
-    events_next = []
-    for event in registers.events_on(events, today + timedelta(days=1), week):
-        if event["days"] is None and (event["last_day"] - event["first_day"]).days > 13:
-            continue  # long written ranges (a season of bookings) are not "coming up"
-        future = [d for d in (event["days"] or [event["first_day"]]) if d > today]
-        events_next.append({**event, "first_day": future[0] if future else event["first_day"]})
-    open_faults = [f for f in faults["faults"] if f["state"] in ("open", "in_progress")]
-    by_building: dict[str, int] = {}
-    for fault in open_faults:
-        by_building[fault["building"]] = by_building.get(fault["building"], 0) + 1
-    permits_active = 0
-    if permits_data is not None:
-        permits_active = sum(timing(record, now) == "active" for record in unique(permits_data[0]["records"]))
-    return {"on_site": on_site, "works_next": works_next, "events_today": registers.events_on(events, today, today),
-            "events_next": events_next, "open_faults": len(open_faults), "faults_to": faults["exported_to"] or now,
-            "faults_by_building": sorted(by_building.items(), key=lambda item: -item[1]), "permits_active": permits_active}
+    records = data["faults"]["faults"]
+    faults = [x for x in records if x.get("kind", "fault") == "fault"]
+    as_at = data["faults"]["exported_to"] or now
+    recent = [x for x in faults if x["reported"] and x["reported"] > as_at - timedelta(days=30)]
+    median = median_minutes(recent)
+    week = [x for x in records if x["reported"] and x["reported"] > as_at - timedelta(days=7)]
+    by_trade: dict[str, int] = {}
+    for x in week:
+        if x.get("kind", "fault") == "fault":
+            by_trade[x["trade"] or "Not recorded"] = by_trade.get(x["trade"] or "Not recorded", 0) + 1
+    open_list = sorted([x for x in faults if x["state"] in ("open", "in_progress")], key=lambda x: x["reported"] or as_at)
+    todays = [x for x in records if x["reported"] and x["reported"].date() == as_at.date()]
+    from demo.sources.registers import is_power_job
+
+    power_jobs = sorted([x for x in records if is_power_job(x) and x["reported"] and x["reported"] > as_at - timedelta(days=7)],
+                        key=lambda x: x["reported"], reverse=True)
+
+    permits = [{**p, "special": any(kind in p["type"] for kind in ismm.SPECIAL_TYPES)}
+               for p in ismm.permits_on(data["permits"]["permits"], today, today)]
+    permits.sort(key=lambda p: (not p["special"], p["company"]))
+    meetings = data["toolbox"]["meetings"]
+    items = data["inventory"]["items"]
+    count = lambda rows, kind: sum(x.get("kind", "fault") == kind for x in rows)
+    return {"faults": {"open": sum(x["state"] == "open" for x in faults), "in_progress": sum(x["state"] == "in_progress" for x in faults),
+                       "over_30": sum(1 for x in open_list if x["reported"] and x["reported"] < as_at - timedelta(days=30)),
+                       "day": as_at.date(), "today": {k: count(todays, k) for k in ("fault", "request", "event")},
+                       "week_split": {k: count(week, k) for k in ("fault", "request", "event")},
+                       "reported_30": len(recent), "median": median, "open_list": open_list, "as_at": as_at,
+                       "by_trade": sorted(by_trade.items(), key=lambda item: -item[1])[:6]},
+            "permits_today": permits,
+            "toolbox_today": sum(m["at"].date() == today for m in meetings),
+            "toolbox_week": sum(today - timedelta(days=6) <= m["at"].date() <= today for m in meetings),
+            "stock_out": sum(i["state"] == "out" for i in items), "stock_low": sum(i["state"] == "low" for i in items),
+            "stock_list": sorted([i for i in items if i["state"] == "out"], key=lambda i: (i["store"], i["item"])),
+            "power_jobs": power_jobs,
+            "events_power": events_needing_power(data["events"]["events"], today),
+            "as_at": [("Faults", data["faults"]["exported_to"]), ("Permits", data["permits"].get("exported")),
+                      ("Tool-box", data["toolbox"].get("exported")), ("Stock", data["inventory"].get("exported"))]}
+
+
+def median_minutes(faults: list[dict]) -> str:
+    """Median minutes from report to someone on site, for records that recorded an on-site time and were not cancelled."""
+    timed = sorted(max(0.0, (x["on_site"] - x["reported"]).total_seconds() / 60) for x in faults if x["on_site"] and not x["cancelled"])
+    if not timed:
+        return "—"
+    mid = len(timed) // 2
+    value = timed[mid] if len(timed) % 2 else (timed[mid - 1] + timed[mid]) / 2
+    return f"{value:.0f} min"
+
+
+def site_short(site: str) -> str:
+    """'Gardens By The Bay (South)' as 'GBB South'."""
+    import re
+
+    match = re.search(r"\(([^()]+)\)", site or "")
+    return f"GBB {match.group(1)}" if match else (site or "")

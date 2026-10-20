@@ -106,13 +106,13 @@ def test_pages_use_the_files_when_configured_and_say_so_when_not(folder, monkeyp
     faults = AppTest.from_file(str(APP), default_timeout=90)
     faults.query_params["view"] = "fault-log"
     faults.run()
-    assert not faults.exception
-    markup = "\n".join(item.value for item in faults.markdown)
-    assert "As at 02 Jun 2025" in markup and "<span>Open</span>" in markup and "Imported · not live" in markup
+    assert not faults.exception and len(faults.get("plotly_chart")) == 2
+    fault_table = next(frame.value for frame in faults.dataframe if "Reported" in frame.value.columns)
+    assert "Age" not in fault_table.columns
     calendar = AppTest.from_file(str(APP), default_timeout=90)
     calendar.query_params["view"] = "calendar"
     calendar.run()
-    assert not calendar.exception and calendar.button_group(key="calendar_source").value == "Real event orders"
+    assert not calendar.exception and calendar.button_group(key="calendar_source").value == "Real events"
     assets = AppTest.from_file(str(APP), default_timeout=90)
     assets.query_params["view"] = "assets"
     assets.run()
@@ -122,3 +122,67 @@ def test_pages_use_the_files_when_configured_and_say_so_when_not(folder, monkeyp
     bare.query_params["view"] = "fault-log"
     bare.run()
     assert not bare.exception and "not configured" in bare.info[0].value
+
+
+def test_meetings_page_slicers_filter_rows_and_suppress_zero_attendee_label(folder, monkeypatch) -> None:
+    from datetime import timedelta
+
+    from demo.sources.ptw_forms import SGT
+
+    today = datetime.now(SGT).date()
+    permit_folder = folder / "PTW"
+    permit_folder.mkdir()
+    permit_headers = ["Permit to Work ID", "Site", "Company", "Trade(s)", "Type", "Start Date", "End Date"]
+    permit_rows = [
+        ["PTW-1", "South", "Alpha Works", "Electrical", "Hot Work", today, today + timedelta(days=2)],
+        ["PTW-2", "East", "Beta Services", "Mechanical", "Other", today, today + timedelta(days=1)],
+    ]
+    pd.DataFrame([["Permit to Work 2026-10-20 16:02:07"] + [None] * 6, permit_headers, *permit_rows]).to_excel(
+        permit_folder / "permits.xlsx", header=False, index=False)
+    toolbox_folder = folder / "Tool Box Meeting"
+    toolbox_folder.mkdir()
+    toolbox_headers = ["Tool Box Meeting ID", "Site", "Company", "Activities", "No. of Attendees", "Conducted Date"]
+    toolbox_rows = [
+        ["TB-1", "South", "Alpha Works", "Electrical isolation", 4, datetime.combine(today, time(9))],
+        ["TB-2", "East", "Beta Services", "Daily safety briefing", 0, datetime.combine(today, time(10))],
+    ]
+    pd.DataFrame([["Tool Box Meeting 2026-10-20 15:54:40"] + [None] * 5, toolbox_headers, *toolbox_rows]).to_excel(
+        toolbox_folder / "meetings.xlsx", header=False, index=False)
+
+    monkeypatch.setenv(ENV_VAR, str(folder))
+    at = AppTest.from_file(str(APP), default_timeout=90)
+    at.query_params["view"] = "permits"
+    at.run()
+
+    assert not at.exception
+    assert {widget.label for widget in at.multiselect} == {"Site", "Company", "Activity"}
+    assert [widget.label for widget in at.date_input] == ["Meeting date range"]
+    assert len(at.dataframe) == 1
+    table = at.dataframe[0].value
+    assert set(table["Company"]) == {"Alpha Works", "Beta Services"}
+    assert table["Date"].str.contains(f"{today:%d %b %Y}").all()
+    assert "0 attending" not in "\n".join(item.value for item in at.markdown)
+    assert not any("Permit type" == widget.label for widget in at.multiselect)
+    assert not any("Permits active today" in item.value for item in at.markdown)
+
+    at.multiselect(key="tb_companies").set_value(["Alpha Works"]).run()
+    assert not at.exception
+    assert set(at.dataframe[0].value["Company"]) == {"Alpha Works"}
+
+
+def test_inventory_page_uses_site_and_inventory_labels(folder, monkeypatch) -> None:
+    inventory_folder = folder / "Assets"
+    inventory_folder.mkdir()
+    columns = ["Description", "Category", "Subcategory", "Ref. ID", "Quantity", "Threshold", "Location", "Remarks"]
+    row = ["LED lamp", "Electrical", "Lamp", "LED-1", 0, 5, "South Store", ""]
+    pd.DataFrame([["Inventories 2026-10-20 15:44:45"] + [None] * (len(columns) - 1), columns, row]).to_excel(
+        inventory_folder / "South (Inventory).xlsx", header=False, index=False)
+    monkeypatch.setenv(ENV_VAR, str(folder))
+
+    at = AppTest.from_file(str(APP), default_timeout=90)
+    at.query_params["view"] = "spares"
+    at.run()
+
+    assert not at.exception
+    assert at.button(key="nav-spares").label == "Inventories"
+    assert {widget.label for widget in at.multiselect} == {"Site", "Category"}

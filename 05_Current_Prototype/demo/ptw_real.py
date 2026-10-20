@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from demo import brand
-from demo.ptw_dashboard import BAY_SOUTH, LEAFLET, TILES
+from demo.ptw_dashboard import LEAFLET, TILES
 from demo.sources.ptw_forms import SGT, timing, unique
 
 CLUSTER = "https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist"
@@ -28,6 +28,12 @@ HEAT = "https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"
 PERIODS = ("Today", "Next 7 days", "Last 30 days", "This year", "All")
 APPROVAL_WORD = {key: word for key, (_, word, _) in brand.PTW_APPROVAL.items()}
 TIMING_WORD = {key: word for key, (_, word, _) in brand.PTW_TIMING.items()}
+SITE_CENTROIDS = {
+    # OpenStreetMap area relations; these are site anchors, not permit or building coordinates.
+    "Gardens By The Bay (South)": (1.281148, 103.864960, "https://www.openstreetmap.org/relation/10231144"),
+    "Gardens By The Bay (East)": (1.288408, 103.869614, "https://www.openstreetmap.org/relation/10247957"),
+    "Gardens By The Bay (Central)": (1.2948390544970187, 103.86402828465714, "https://www.google.com/maps"),
+}
 
 
 def esc(value: Any) -> str:
@@ -95,6 +101,33 @@ def map_points(records: list[dict], point_of: dict[str, dict], now: datetime) ->
     return out, unplaced
 
 
+def site_map_points(records: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Group iSMM register records at public site centroids; leave sites without a verified match unplaced."""
+    points: dict[str, dict] = {}
+    unplaced = []
+    for record in records:
+        site = record["site"] or "Site not recorded"
+        coordinates = SITE_CENTROIDS.get(site)
+        if coordinates is None:
+            unplaced.append(record)
+            continue
+        lat, lon, source = coordinates
+        point = points.setdefault(site, {"point_id": source.rsplit("/", 1)[-1], "lat": lat, "lon": lon,
+                                         "names": [site], "verified": False,
+                                         "location_note": "Site area marker only; exact work location not provided.",
+                                         "permits": []})
+        start, end = record["start"], record["end"]
+        window = f"{start:%d %b %Y} – {end:%d %b %Y}" if start and end else "Dates unreadable"
+        approval = "Approved" if record["approved"] else "Not recorded"
+        point["permits"].append({"ref": record["ref"], "company": record["company"], "form": "iSMM permit export",
+                                 "window": window, "timing": "Site-level only", "approval": approval,
+                                 "work": " · ".join(value for value in (record["type"], record["trades"]) if value)})
+    out = sorted(points.values(), key=lambda point: (-len(point["permits"]), point["names"][0]))
+    for point in out:
+        point["count"] = len(point["permits"])
+    return out, unplaced
+
+
 MAP_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="__LEAFLET__.css"><link rel="stylesheet" href="__CLUSTER__/MarkerCluster.css">
 <style>
@@ -131,27 +164,31 @@ if (!window.L) {
     const list = p.permits.slice(0, 25).map(x => `<li><b>${esc(x.ref)}</b> · ${esc(x.company)}<br><small>${esc(x.window)} · ${esc(x.timing)} · ${esc(x.approval)}</small><br>${esc(x.work)}</li>`).join('');
     const more = p.permits.length > 25 ? `<div><small>${p.permits.length - 25} more in the permit list below.</small></div>` : '';
     const where = esc(p.names.join(' / '));
-    const note = p.verified ? '' : '<br><small>Approximate coordinates (not verified)</small>';
+    const note = p.verified ? '' : `<br><small>${esc(p.location_note || 'Approximate coordinates (not verified)')}</small>`;
     L.marker([p.lat, p.lon], {icon, count: p.count, refs: p.permits.map(x => x.ref), title: `${p.names.join(' / ')}: ${p.count} permit(s)`})
       .bindPopup(`<b>${where}</b><br><small>${p.count} permit(s) in this selection${note}</small><ul>${list}</ul>${more}`, {maxWidth: 360})
       .addTo(markers);
   });
   markers.addTo(map);
   const overlays = {'Permit markers (clustered)': markers};
-  if (L.heatLayer && D.points.length) {
+    if (D.points.length) {
     const top = Math.max(...D.points.map(p => p.count));
-    overlays['Permit density (count of permits)'] = L.heatLayer(D.points.map(p => [p.lat, p.lon, p.count / top]), {radius: 34, blur: 26, maxZoom: 18, minOpacity: .25,
-      gradient: {0.25: '#C7D8EE', 0.55: '#7FA6D6', 0.8: '#3F78BE', 1: '#1F5FAD'}}  // one hue: more permits, never 'danger');
+        overlays['Permit density (count of permits)'] = L.heatLayer
+            ? L.heatLayer(D.points.map(p => [p.lat, p.lon, p.count / top]), {radius: 34, blur: 26, maxZoom: 18, minOpacity: .25,
+                    gradient: {0.25: '#C7D8EE', 0.55: '#7FA6D6', 0.8: '#3F78BE', 1: '#1F5FAD'}})
+            : L.layerGroup(D.points.map(p => L.circle([p.lat, p.lon], {radius: 45 + 65 * p.count / top, color: '#3F78BE',
+                    weight: 1, fillColor: '#3F78BE', fillOpacity: .3 + .4 * p.count / top})));
   }
   L.control.layers(null, overlays, {collapsed: false}).addTo(map);
-  const bounds = D.points.length ? L.latLngBounds(D.points.map(p => [p.lat, p.lon])).pad(0.25) : L.latLngBounds(D.fallback);
-  map.fitBounds(bounds, {maxZoom: 17});
+    if (D.points.length) map.fitBounds(L.latLngBounds(D.points.map(p => [p.lat, p.lon])).pad(0.25), {maxZoom: 17});
+    else map.setView(D.fallback, 15);
 }
 </script></body></html>"""
 
 
 def map_page(points: list[dict]) -> str:
-    payload = json.dumps({"points": points, "tiles": TILES[0], "attribution": TILES[1], "fallback": BAY_SOUTH}, default=str)
+    central = SITE_CENTROIDS["Gardens By The Bay (Central)"]
+    payload = json.dumps({"points": points, "tiles": TILES[0], "attribution": TILES[1], "fallback": central[:2]}, default=str)
     return (MAP_TEMPLATE.replace("__LEAFLET__", LEAFLET).replace("__CLUSTER__", CLUSTER).replace("__HEAT__", HEAT)
             .replace("__PAYLOAD__", payload.replace("</", "<\\/")))
 

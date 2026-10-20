@@ -233,5 +233,5 @@ def render(db: Any = None) -> None:
         st.info("No OG boxes in the site database yet.")
         return
     st.markdown(f'<div class="sa-bar">{tally_html(data)}{legend_html()}'
-                f'<div class="sa-note">Synthetic loads · sockets per OG box · as of {sgt(data["as_of"], "%d %b %H:%M")} SGT</div></div>'
+                f'<div class="sa-note">Demo loads · sockets per power box · as of {sgt(data["as_of"], "%d %b %H:%M")} SGT</div></div>'
                 + '<div class="ep-boxes">' + "".join(box_html(item) for item in data["boxes"]) + "</div>", unsafe_allow_html=True)

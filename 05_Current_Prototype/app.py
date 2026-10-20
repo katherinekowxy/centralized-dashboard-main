@@ -34,7 +34,7 @@ GRID, PAPER, PLOT = brand.CHART["grid"], brand.CHART["paper"], brand.CHART["plot
 IDLE = brand.DIAGNOSTIC["idle"][0]
 STATUS_COLOR = {"alert": CORAL, "warn": AMBER, "ok": TEAL, "idle": IDLE}
 STATUS_WORD = {key: word for key, (_, word, _) in brand.DIAGNOSTIC.items()}
-st.set_page_config(page_title="Gardens by the Bay | Facilities IOC", page_icon="◆", layout="wide")
+st.set_page_config(page_title="Gardens by the Bay | Integrated Operations Centre", page_icon="◆", layout="wide")
 st.markdown(brand.style() + """
 <style>
 .sd-head {display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap;margin:.15rem 0}
@@ -956,7 +956,7 @@ SHELL_CSS = """
 [data-testid="stSidebar"] > div:first-child {padding-top:0}
 [data-testid="stSidebarHeader"] {display:none}
 .ioc-logo {padding:22px 10px 18px;margin:0 0 4px;border-bottom:1px solid var(--gbb-line)}
-.ioc-logo small {display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--gbb-ink-3);letter-spacing:.04em}
+.ioc-logo small {display:block;margin-top:8px;font-size:12px;font-weight:800;color:var(--gbb-ink-3);letter-spacing:.04em}
 .ioc-area {font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gbb-ink-3);margin:0;padding:16px 0 4px 10px}
 .st-key-ioc-nav, .st-key-ioc-nav [data-testid="stVerticalBlock"] {gap:2px !important}
 .st-key-ioc-nav [data-testid="stMarkdownContainer"] {margin-bottom:0 !important}
@@ -974,14 +974,15 @@ SHELL_CSS = """
 .ioc-dir li span {display:none}
 """
 
+IMPORTED_SOURCE = "imported"
 SOURCE_TAG = {navigation.SITE: "Demo data", navigation.REPLAY: "Demo scenario", navigation.MIXED: "Demo data",
-              navigation.IMPORTED: "Imported · not live"}
+              IMPORTED_SOURCE: "Imported · not live"}
 
 
 def source_badge(page: navigation.Page) -> str:
     if page.source == navigation.REFERENCE:
         return '<span class="gbb-source">Reference only · not integrated</span>'
-    if page.source == navigation.IMPORTED:
+    if page.source == IMPORTED_SOURCE:
         return brand.source_badge("imported").replace("Imported file", SOURCE_TAG[page.source])
     return brand.demo_badge(SOURCE_TAG[page.source]) if page.source in SOURCE_TAG else ""
 
@@ -1022,27 +1023,40 @@ def _real_permits(folder: str, stamp: tuple) -> tuple[dict, dict, list]:
     return ptw_forms.load(root, matcher), buildings, problems
 
 
-def real_permits(folder: str) -> tuple[dict, dict, list]:
-    from pathlib import Path as _Path
+def real_permits(_folder: str | None = None) -> tuple[dict, dict, list]:
+    """Permit forms and the building list, from the configured folder that holds them."""
+    from demo import sources
 
-    root = _Path(folder)
+    root = sources.folder_with("PERMIT-TO-WORK") or sources.folder_with("Building Location.xlsx")
+    if root is None:
+        return {"records": [], "issues": [], "files": [], "modified": None}, {}, []
+    folder = str(root)
     files = [root / "Building Location.xlsx", *sorted((root / "PERMIT-TO-WORK").glob("*.xlsx"))]
     return _real_permits(folder, tuple((path.name, path.stat().st_mtime) for path in files if path.is_file()))
 
 
 def ptw_page(page: navigation.Page) -> None:
-    """PTW map: imported permit forms on the client's location mapping, or the synthetic site demo with its impacts."""
-    from demo import ptw_real, sources
+    """PTW map: imported permit forms, site-level iSMM permits, or the synthetic site demo."""
+    from datetime import datetime as _datetime
+
+    from demo import ptw_real, real_pages, sources
+    from demo.sources.ptw_forms import SGT as _SGT
 
     folder = sources.data_dir()
     default = PTW_SOURCES[0] if folder else PTW_SOURCES[1]
     choice = st.session_state.get("ptw_source") or default
+    has_ismm_permits = bool(folder and (folder / "PTW").is_dir())
+    permit_data = real_registers()["permits"] if has_ismm_permits else None
     badge = (brand.source_badge("imported").replace("Imported file", "Imported · not live")
              if choice == PTW_SOURCES[0] else None)
     sub = ""
     if folder is not None and choice == PTW_SOURCES[0]:
-        modified = real_permits(str(folder))[0]["modified"]
-        sub = f"Permit-to-work forms · files updated {modified:%d %b %Y}" if modified else "Permit-to-work forms"
+        if has_ismm_permits:
+            exported = permit_data["exported"] if permit_data else None
+            sub = f"iSMM permit export · {exported:%d %b %Y %H:%M}" if exported else "iSMM permit export"
+        else:
+            modified = real_permits(str(folder))[0]["modified"]
+            sub = f"Permit-to-work forms · files updated {modified:%d %b %Y}" if modified else "Permit-to-work forms"
     page_header(page, badge=badge, sub=sub)
     choice = st.segmented_control("Source", PTW_SOURCES, default=default, key="ptw_source", label_visibility="collapsed") or default
     if choice == PTW_SOURCES[1]:
@@ -1056,28 +1070,59 @@ def ptw_page(page: navigation.Page) -> None:
         st.info(f"Real permit files are not configured. Set the environment variable {sources.ENV_VAR} to the folder that holds "
                 "PERMIT-TO-WORK and Building Location.xlsx, then restart the app. The synthetic site demo is still available above.")
         return
+    if has_ismm_permits:
+        real_pages.permit_site_map(permit_data, _datetime.now(_SGT).date())
+        return
     ptw_real.render(folder, real_permits)
 
 
 @st.cache_data(ttl=600, show_spinner="Reading asset, fault and event files...")
-def _real_registers(folder: str, stamp: tuple) -> dict:
-    from pathlib import Path as _Path
-
+def _real_paths(configured_dirs: tuple[str, ...]) -> dict:
+    """Where each real file is, across every configured folder (the first folder wins; the newest fault export wins)."""
+    from demo import sources
     from demo.sources import registers
 
-    root = _Path(folder)
-    return {"assets": registers.load_assets(root), "faults": registers.load_faults(root), "events": registers.load_events(root),
-            "schedules": registers.load_schedules(root)}
+    folders = [Path(folder) for folder in configured_dirs]
+    folder_with = lambda relative: next((folder for folder in folders if (folder / relative).exists()), None)
+    faults = [path for folder in folders for path in folder.glob("fault*.xlsx") if path.is_file() and not path.name.startswith("~$")]
+    return {"assets": folder_with(registers.ASSET_FILE), "faults": max(faults, key=lambda path: path.stat().st_mtime, default=None),
+            "events": folder_with(registers.EVENT_FILE), "schedules": folder_with(registers.SCHEDULE_FILE),
+            "permits": folder_with("PTW"), "toolbox": folder_with("Tool Box Meeting"),
+            "inventory": folder_with("Assets")}
 
 
-def real_registers(folder: str) -> dict:
-    """The register, fault log and event workbook, re-read when a file changes or after ten minutes."""
+@st.cache_data(ttl=600, show_spinner="Reading the iSMM exports...")
+def _real_registers(paths: tuple, stamp: tuple) -> dict:
     from pathlib import Path as _Path
 
-    from demo.sources import registers
+    from demo.sources import ismm, registers
 
-    files = [_Path(folder) / name for name in (registers.ASSET_FILE, registers.FAULT_FILE, registers.EVENT_FILE, registers.SCHEDULE_FILE)]
-    return _real_registers(folder, tuple((path.name, path.stat().st_mtime) for path in files if path.is_file()))
+    where = {key: (_Path(value) if value else None) for key, value in paths}
+    empty = lambda key: {key: [], "issues": [], "modified": None, "exported": None}
+    faults = (registers.load_faults(where["faults"].parent, where["faults"]) if where["faults"]
+              else {"faults": [], "issues": [], "modified": None, "exported_to": None, "exported_from": None, "gaps": []})
+    return {"assets": registers.load_assets(where["assets"]) if where["assets"] else {"assets": [], "issues": [], "modified": None},
+            "faults": faults,
+            "events": registers.load_events(where["events"]) if where["events"] else empty("events"),
+            "schedules": registers.load_schedules(where["schedules"]) if where["schedules"] else empty("schedules"),
+            "permits": ismm.load_permits(where["permits"]) if where["permits"] else empty("permits"),
+            "toolbox": ismm.load_toolbox(where["toolbox"]) if where["toolbox"] else empty("meetings"),
+            "inventory": ismm.load_inventory(where["inventory"]) if where["inventory"] else empty("items")}
+
+
+def real_registers(_folder: str | None = None) -> dict:
+    """All iSMM and workbook exports, re-read when any file changes or after ten minutes."""
+    from demo import sources
+
+    configured_dirs = tuple(str(folder) for folder in sources.data_dirs())
+    paths = {key: str(value) if value else "" for key, value in _real_paths(configured_dirs).items()}
+    files = []
+    for key, value in paths.items():
+        if not value:
+            continue
+        path = Path(value)
+        files += [path] if path.is_file() else [f for f in path.rglob("*.xlsx")]
+    return _real_registers(tuple(sorted(paths.items())), tuple(sorted((str(f), f.stat().st_mtime) for f in files)))
 
 
 def not_configured(what: str) -> None:
@@ -1101,7 +1146,120 @@ def fault_log_page() -> None:
     real_pages.fault_log(data)
 
 
-CALENDAR_SOURCES = ("Real event orders", "Demo site")
+def event_power_page(page: navigation.Page) -> None:
+    """Event power: real event power handovers from iSMM, upcoming bookings when the event workbook is present, then the
+    socket board. Socket loads are demo until power meters are connected."""
+    from datetime import datetime as _datetime, timedelta as _timedelta
+
+    from demo import overview_v2, sources, ui
+    from demo.sources.ptw_forms import SGT as _SGT
+
+    page_header(page, sub="Power for events: handovers recorded in iSMM, and the outdoor power boxes that supply events",
+                badge=brand.source_badge("imported").replace("Imported file", "iSMM handovers · demo loads"))
+    if sources.data_dirs():
+        data = real_registers()
+        as_at = data["faults"]["exported_to"] or _datetime.now(_SGT)
+        jobs = [x for x in data["faults"]["faults"] if x.get("kind") == "event" and x["reported"]]
+        from demo.sources.registers import is_power_job
+
+        power = sorted([x for x in jobs if is_power_job(x) and x["reported"] > as_at - _timedelta(days=7)],
+                       key=lambda x: x["reported"], reverse=True)
+        week = [x for x in jobs if x["reported"] > as_at - _timedelta(days=7)]
+        venues = {x["building"] for x in week if x["building"] and x["building"] != "Not recorded"}
+        st.markdown(ui.kpis([
+            {"label": "Power handovers", "value": len(power), "caption": "Last 7 days"},
+            {"label": "Event support jobs", "value": len(week), "caption": f"Last 7 days · {len(venues)} venues"},
+            {"label": "Still open", "value": sum(x["state"] in ("open", "in_progress") for x in jobs), "caption": "Event support not completed"},
+        ]), unsafe_allow_html=True)
+        rows = ui.rows([{"left": ui.date_cell(x["reported"].strftime("%a %d %b")), "main": x["what"],
+                         "sub": " · ".join(v for v in (x["building"], x["room"], x["remarks"][:70]) if v)} for x in power[:8]],
+                       "No event power handovers in the last 7 days.")
+        panels = [ui.panel("Event power handovers, last 7 days", rows, note=f"iSMM · to {as_at:%d %b %H:%M}")]
+        today = _datetime.now(_SGT).date()
+        upcoming = overview_v2.events_needing_power(data["events"]["events"], today, ahead=30)
+        if data["events"]["events"]:
+            panels.append(ui.panel("Upcoming events needing power", ui.rows(
+                [{"left": ui.date_cell(e["when"]), "main": e["title"], "sub": " · ".join(x for x in (e["location"], e["time_text"]) if x),
+                  "right": ui.pill("info", "Power on" if e["power_on"] else "Power needed")} for e in upcoming[:8]],
+                "No event needing power in the next 30 days."), note="Event order workbook"))
+        else:
+            panels.append(ui.panel("Upcoming events", '<div class="u-empty">Upcoming event bookings are not in the data folder. '
+                                   "Add the event order workbook to list events that need power.</div>"))
+        st.markdown(ui.grid(panels, "1.4fr 1fr"), unsafe_allow_html=True)
+    st.markdown(f'<div class="u-sec">Outdoor power boxes and sockets {brand.demo_badge("Demo loads")}</div>', unsafe_allow_html=True)
+    db, module = site_db(), site_module(page.module)
+    if db is None or module is None:
+        st.info("The site database could not be loaded.")
+        return
+    module.render(db)
+
+
+def safety_meetings_page() -> None:
+    from datetime import datetime as _datetime
+
+    from demo import real_pages, sources
+    from demo.sources.ptw_forms import SGT as _SGT
+
+    data = real_registers() if sources.data_dirs() else None
+    exported = data["toolbox"]["exported"] if data else None
+    page_header(navigation.PAGE["permits"], sub=f"iSMM tool-box meeting export · {exported:%d %b %Y %H:%M}" if exported else "")
+    if not data or not data["toolbox"]["meetings"]:
+        st.info("No tool-box meeting records were found in the configured exports.")
+        return
+    real_pages.safety_meetings(data["toolbox"], _datetime.now(_SGT).date())
+
+
+def spares_page() -> None:
+    from demo import real_pages, sources
+
+    data = real_registers() if sources.data_dirs() else None
+    exported = data["inventory"]["exported"] if data else None
+    page_header(navigation.PAGE["spares"], sub=f"iSMM inventory export · {exported:%d %b %Y %H:%M}" if exported else "")
+    if not data or not data["inventory"]["items"]:
+        not_configured("Inventories")
+        return
+    real_pages.spares(data["inventory"])
+
+
+def smart_asset_sample_page() -> None:
+    from demo import smart_asset_sample, sources
+
+    page = navigation.PAGE["smart-assets"]
+    folder = sources.data_dir()
+    archive = folder / "smart_asset_prototype.zip" if folder else None
+    page_header(page, badge=brand.demo_badge("Synthetic sample · not live"),
+                sub="Illustrative smart-asset prototype · 30-day sample readings")
+    if archive is None or not archive.is_file():
+        st.info(f"Set {sources.ENV_VAR} to the dataset folder containing smart_asset_prototype.zip.")
+        return
+    smart_asset_sample.render(archive)
+
+
+def demo_workspace_page() -> None:
+    from demo import workspace
+
+    presentation_mode = st.query_params.get("presentation") == "1"
+    modules = [{"key": page.key, "label": page.label, "area": page.area}
+               for page in navigation.PAGES if page.key != "demo-workspace"]
+    if presentation_mode:
+        st.markdown("""<style>
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], [data-testid="stHeader"],
+[data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important}
+[data-testid="stMainBlockContainer"] {max-width:none !important;padding:.35rem !important}
+</style>""", unsafe_allow_html=True)
+        if st.button("Exit presentation", key="workspace-exit-presentation"):
+            del st.query_params["presentation"]
+            st.rerun()
+    else:
+        page_header(navigation.PAGE["demo-workspace"], sub="Four live pages · 55-inch display layout")
+        if st.button("Presentation mode", key="workspace-presentation"):
+            st.query_params["presentation"] = "1"
+            st.rerun()
+    st.iframe(workspace.page_html(modules, base_url(), presentation_mode),
+              height=1000 if presentation_mode else 920)
+
+
+CALENDAR_SOURCES = ("Real events", "Demo site")
 
 
 def calendar_page(page: navigation.Page) -> None:
@@ -1114,8 +1272,11 @@ def calendar_page(page: navigation.Page) -> None:
     folder = sources.data_dir()
     default = CALENDAR_SOURCES[0] if folder else CALENDAR_SOURCES[1]
     choice = st.session_state.get("calendar_source") or default
+    data = real_registers() if folder else None
+    has_workbook = bool(data and data["events"]["events"])
     badge = brand.source_badge("imported").replace("Imported file", "Imported · not live") if choice == CALENDAR_SOURCES[0] else None
-    page_header(page, badge=badge, sub="Event order workbook" if choice == CALENDAR_SOURCES[0] and folder else "")
+    sub = ("Event order workbook" if has_workbook else "Event support jobs recorded in iSMM") if choice == CALENDAR_SOURCES[0] and folder else ""
+    page_header(page, badge=badge, sub=sub)
     choice = st.segmented_control("Source", CALENDAR_SOURCES, default=default, key="calendar_source", label_visibility="collapsed") or default
     if choice == CALENDAR_SOURCES[1]:
         db, module = site_db(), site_module(page.module)
@@ -1127,7 +1288,10 @@ def calendar_page(page: navigation.Page) -> None:
     if folder is None:
         not_configured("Event orders")
         return
-    real_pages.event_orders(real_registers(str(folder))["events"], _datetime.now(_SGT).date())
+    if has_workbook:
+        real_pages.event_orders(data["events"], _datetime.now(_SGT).date())
+    else:
+        real_pages.event_support(data["faults"])
 
 
 def site_page(page: navigation.Page) -> None:
@@ -1137,6 +1301,9 @@ def site_page(page: navigation.Page) -> None:
         return
     if page.key == "calendar":
         calendar_page(page)
+        return
+    if page.key == "event-power":
+        event_power_page(page)
         return
     page_header(page, title=page.module not in OWN_TITLE)
     db, module = site_db(), site_module(page.module)
@@ -1160,15 +1327,15 @@ def overview_page() -> None:
     if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
         replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
     now = _datetime.now(_SGT)
-    folder = sources.data_dir()
-    real = None
-    if folder is not None:
-        real = overview_v2.real_context(str(folder), real_registers(str(folder)), real_permits(str(folder)), now)
+    real = overview_v2.real_context(real_registers(), now) if sources.data_dirs() else None
     tags = [] if real else [brand.demo_badge("Demo data")]
     from demo import ui
 
-    st.markdown(ui.head("Site overview", f"{now:%A %d %B %Y} · {now:%H:%M} SGT", tags), unsafe_allow_html=True)
-    ctx = {"summary": site_overview.summary(db, st.session_state["replay"]), "today": now.date(), "now": now, "real": real}
+    sub = overview_v2.sources_line(real) if real else f"{now:%A %d %B %Y}"
+    tags = tags or [brand.source_badge("imported").replace("Imported file", "iSMM exports · not live")]
+    st.markdown(ui.head("Site overview", sub, tags), unsafe_allow_html=True)
+    ctx = {"summary": site_overview.summary(db, st.session_state["replay"]), "today": now.date(), "now": now, "real": real,
+           "show_demo": bool(st.session_state.get("nav_all"))}
     st.markdown(overview_v2.page_html(ctx), unsafe_allow_html=True)
 
 
@@ -1452,19 +1619,39 @@ def nav_button(page: navigation.Page, current: navigation.Page) -> None:
               type="primary" if page.key == current.key else "tertiary")
 
 
+def show_all_changed() -> None:
+    if st.session_state.get("nav_all"):
+        st.query_params["all"] = "1"
+    elif "all" in st.query_params:
+        del st.query_params["all"]
+
+
 def sidebar_nav(current: navigation.Page) -> None:
+    """Client pages by default; internal, engineering and demo pages behind one switch (or ?all=1)."""
     from demo import ui
 
-    st.markdown(f'<div class="ioc-logo">{ui.logo(46)}<small>FACILITIES OPERATIONS CENTRE</small></div>', unsafe_allow_html=True)
+    if "nav_all" not in st.session_state:
+        st.session_state["nav_all"] = st.query_params.get("all") == "1" or not current.client
+    elif not current.client:
+        st.session_state["nav_all"] = True
+    show_all = st.session_state["nav_all"]
+    st.markdown(f'<div class="ioc-logo">{ui.logo(46)}<small>INTEGRATED OPERATIONS CENTRE</small></div>', unsafe_allow_html=True)
     with st.container(key="ioc-nav"):
         for area in navigation.AREAS:
+            pages = navigation.area_pages(area, client_only=not show_all)
+            if not pages:
+                continue
             st.markdown(f'<div class="ioc-area">{esc(area)}</div>', unsafe_allow_html=True)
-            for page in navigation.area_pages(area):
+            for page in pages:
                 nav_button(page, current)
-        st.markdown('<div class="ioc-area">Other tools</div>', unsafe_allow_html=True)
-        for page in navigation.PAGES:
-            if page.secondary:
+        others = [p for p in navigation.PAGES if p.secondary and (show_all or p.client)]
+        if others:
+            st.markdown('<div class="ioc-area">Other tools</div>', unsafe_allow_html=True)
+            for page in others:
                 nav_button(page, current)
+    st.markdown('<div style="height:18px"></div>', unsafe_allow_html=True)
+    st.toggle("Show internal & demo pages", key="nav_all", on_change=show_all_changed,
+              help="Engineering workbench, demo datasets and administration pages.")
 
 
 scenario_by_id = {item["scenario_id"]: item for item in SCENARIOS}
@@ -1486,13 +1673,28 @@ if st.query_params.get("display") or st.query_params.get("wall"):  # presentatio
 
 current = current_page()
 st.markdown(f"<style>{SHELL_CSS}</style>", unsafe_allow_html=True)
-with st.sidebar:
-    sidebar_nav(current)
+embedded_page = st.query_params.get("workspace_embed") == "1"
+presentation_workspace = current.key == "demo-workspace" and st.query_params.get("presentation") == "1"
+if embedded_page:
+    st.markdown("""<style>
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], [data-testid="stHeader"],
+[data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important}
+[data-testid="stMainBlockContainer"] {max-width:none !important;padding:.35rem .6rem !important}
+</style>""", unsafe_allow_html=True)
+elif presentation_workspace:
+    pass
+else:
+    with st.sidebar:
+        sidebar_nav(current)
+if current.key == "demo-workspace":
+    demo_workspace_page()
+    st.stop()
 if current.module:
     site_page(current)
     st.stop()
 if not current.replay_page:
-    {"overview": overview_page, "assets": asset_overview_page, "displays": displays_page, "fault-log": fault_log_page}[current.key]()
+    {"overview": overview_page, "assets": asset_overview_page, "displays": displays_page, "fault-log": fault_log_page,
+     "permits": safety_meetings_page, "spares": spares_page, "smart-assets": smart_asset_sample_page}[current.key]()
     st.stop()
 
 # Diagnostics workbench: one replayed synthetic scenario shared by the replay-backed pages.

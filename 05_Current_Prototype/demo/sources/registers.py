@@ -32,7 +32,7 @@ ASSET_COLUMNS = ("Asset Tag Number", "Description", "System Type", "Asset Catego
                  "Floor", "Room", "ID Type", "ID", "Building Trade", "Trade Category", "Date", "Completed")
 FAULT_COLUMNS = ("Fault Number", "Trade", "Trade Category", "Type of Fault", "Impact", "Site", "Building", "Floor", "Room",
                  "Cancel Status", "Reported Date", "Fault Acknowledged Date", "Responded on Site Date", "Work Started Date",
-                 "Work Completed Date", "Remarks")
+                 "Work Completed Date", "Remarks", "Company")
 EVENT_COLUMNS = ("Date", "Event Time", "Description of Events", "Location", "Power Requirement", "Power Turn On",
                  "AV Equipment", "Kitchen HOTO", "Overtime for Kitchen HOTO", "Remarks")
 GAP_DAYS = 28  # a site this size reports faults daily; four weeks without one means missing data
@@ -107,13 +107,41 @@ def load_assets(folder: Path) -> dict[str, Any]:
     return {"assets": list(assets.values()), "issues": problems, "modified": modified}
 
 
-def load_faults(folder: Path) -> dict[str, Any]:
-    """Every fault in the iSMM export with its lifecycle times, and the problems found. Cancelled faults are kept."""
+KIND_WORD = {"fault": "Fault", "request": "Service request", "event": "Event support"}
+KIND_PLURAL = {"fault": "faults", "request": "service requests", "event": "event support jobs"}
+
+
+def record_kind(trade: str) -> str:
+    """iSMM's fault log also holds service requests (open a bollard, escort a vendor) and event support (space, AV,
+    kitchen and power handovers). They are counted apart so a busy event week never reads as a wave of breakdowns."""
+    value = (trade or "").strip().casefold()
+    return "request" if value == "request" else "event" if value == "events" else "fault"
+
+
+def is_power_job(record: dict) -> bool:
+    """An event support job about power: its category or its description mentions power (for example "Power Handover", or
+    "Event Handover/Takeover" described as "Power handover at FFH"). One rule for every page."""
+    return record.get("kind") == "event" and "power" in f"{record.get('trade_category') or ''} {record.get('type') or ''}".casefold()
+
+
+def describe(fault: dict) -> str:
+    """What the record is about in plain words: '<trade category> · <type>', with iSMM's 'Other:' prefix removed."""
+    kind_of = re.sub(r"^\s*other\s*:\s*", "", fault.get("type") or "", flags=re.I).strip()
+    category = (fault.get("trade_category") or "").strip()
+    if category.casefold() in {"services", ""}:
+        return kind_of[:1].upper() + kind_of[1:] if kind_of else (fault.get("trade") or "Not recorded")
+    return f"{category} · {kind_of}" if kind_of and kind_of.casefold() not in category.casefold() else category
+
+
+def load_faults(folder: Path, path: Path | None = None) -> dict[str, Any]:
+    """Every fault in the iSMM export with its lifecycle times, and the problems found. Cancelled faults are kept.
+    ``path`` picks a specific export (the newest ``fault*.xlsx``); otherwise ``fault.xlsx`` in ``folder`` is read."""
     import pandas as pd
 
-    path = folder / FAULT_FILE
+    path = path or folder / FAULT_FILE
+    FAULT_FILE_NAME = path.name
     if not path.is_file():
-        return {"faults": [], "issues": [issue("missing_file", f"{FAULT_FILE} not found", file=FAULT_FILE)], "modified": None,
+        return {"faults": [], "issues": [issue("missing_file", f"{FAULT_FILE_NAME} not found", file=FAULT_FILE_NAME)], "modified": None,
                 "exported_to": None, "exported_from": None, "gaps": []}
     frame = pd.read_excel(path, dtype=object, usecols=lambda column: column in FAULT_COLUMNS)
     problems, fatal = _missing(frame, FAULT_COLUMNS, ("Fault Number", "Reported Date"), FAULT_FILE)
@@ -131,17 +159,17 @@ def load_faults(folder: Path) -> dict[str, Any]:
             number = _text(row.get("Fault Number"))
             reported = stamp("Reported Date", index)
             if not number:
-                problems.append(issue("blank_value", "Fault Number is blank", file=FAULT_FILE, row=excel_row, field="Fault Number"))
+                problems.append(issue("blank_value", "Fault Number is blank", file=FAULT_FILE_NAME, row=excel_row, field="Fault Number"))
             elif number in seen:
-                problems.append(issue("duplicate_row", "Fault number repeated; counted once", file=FAULT_FILE, row=excel_row, ref=number))
+                problems.append(issue("duplicate_row", "Fault number repeated; counted once", file=FAULT_FILE_NAME, row=excel_row, ref=number))
                 continue
             seen.add(number)
             if reported is None:
-                problems.append(issue("invalid_value", "Reported Date could not be read; fault left out of trends", file=FAULT_FILE,
+                problems.append(issue("invalid_value", "Reported Date could not be read; fault left out of trends", file=FAULT_FILE_NAME,
                                       row=excel_row, field="Reported Date", value=row.get("Reported Date"), ref=number))
             completed = stamp("Work Completed Date", index)
             if completed and reported and completed < reported:
-                problems.append(issue("end_before_start", "Completed before reported", file=FAULT_FILE, row=excel_row,
+                problems.append(issue("end_before_start", "Completed before reported", file=FAULT_FILE_NAME, row=excel_row,
                                       field="Work Completed Date", ref=number))
             cancel = _text(row.get("Cancel Status")).casefold()
             faults.append({"number": number, "trade": _text(row.get("Trade")), "trade_category": _text(row.get("Trade Category")),
@@ -151,15 +179,18 @@ def load_faults(folder: Path) -> dict[str, Any]:
                            "acknowledged": stamp("Fault Acknowledged Date", index), "on_site": stamp("Responded on Site Date", index),
                            "started": stamp("Work Started Date", index), "completed": completed,
                            "cancelled": cancel == "approved", "cancel_status": cancel,
-                           "remarks": readable(_text(row.get("Remarks"))), "source_row": excel_row})
+                           "remarks": readable(_text(row.get("Remarks"))), "company": _text(row.get("Company")),
+                           "source_row": excel_row, "source_file": FAULT_FILE_NAME})
     for fault in faults:
         fault["state"] = ("cancelled" if fault["cancelled"] else "completed" if fault["completed"]
                           else "in_progress" if fault["started"] else "open")
+        fault["kind"] = record_kind(fault["trade"])
+        fault["what"] = describe(fault)
     stamps = sorted(fault["reported"] for fault in faults if fault["reported"])
     gaps = [(a, b) for a, b in zip(stamps, stamps[1:]) if b - a >= timedelta(days=GAP_DAYS)]
     for a, b in gaps:  # a hole in the export, not a quiet period: reported so it is never charted as zero faults
         problems.append(issue("coverage_gap", f"No fault reported between {a:%d %b %Y} and {b:%d %b %Y}; the export appears to be missing this period",
-                              file=FAULT_FILE, field="Reported Date"))
+                              file=FAULT_FILE_NAME, field="Reported Date"))
     return {"faults": faults, "issues": problems, "modified": datetime.fromtimestamp(path.stat().st_mtime, SGT),
             "exported_to": stamps[-1] if stamps else None, "exported_from": stamps[0] if stamps else None, "gaps": gaps}
 

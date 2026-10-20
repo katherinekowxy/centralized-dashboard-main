@@ -109,6 +109,33 @@ def test_map_counts_permits_once_per_point_and_lists_exceptions(folder) -> None:
     assert "risk" not in page.replace("not a risk", "") and "distinct permits" in page
 
 
+def test_site_map_uses_approximate_public_centroids_and_leaves_central_unplaced() -> None:
+    records = [
+        {"site": "Gardens By The Bay (South)", "ref": "S-1", "company": "Alpha", "start": NOW, "end": NOW,
+         "approved": datetime(2026, 10, 20, tzinfo=ptw_forms.SGT), "type": "Hot Work", "trades": "Electrical"},
+        {"site": "Gardens By The Bay (East)", "ref": "E-1", "company": "Beta", "start": NOW, "end": NOW,
+         "approved": None, "type": "Other", "trades": "Mechanical"},
+        {"site": "Gardens By The Bay (Central)", "ref": "C-1", "company": "Gamma", "start": NOW, "end": NOW,
+         "approved": None, "type": "Other", "trades": "Building"},
+    ]
+
+    points, unplaced = ptw_real.site_map_points(records)
+    html = ptw_real.map_page(points)
+
+    assert {point["names"][0] for point in points} == {"Gardens By The Bay (South)", "Gardens By The Bay (East)",
+                                                        "Gardens By The Bay (Central)"}
+    assert all(not point["verified"] for point in points)
+    assert [(point["lat"], point["lon"]) for point in points if point["names"][0].endswith("(South)")] == [(1.281148, 103.86496)]
+    assert [(point["lat"], point["lon"]) for point in points if point["names"][0].endswith("(Central)")] == [
+        (1.2948390544970187, 103.86402828465714)]
+    assert not unplaced
+    assert "Permit density (count of permits)" in html and "L.layerGroup(D.points.map" in html
+    assert "Site area marker only; exact work location not provided." in html and "1.281148" in html and "1.288408" in html
+    empty_map = ptw_real.map_page([])
+    assert '"fallback": [1.2948390544970187, 103.86402828465714]' in empty_map
+    assert "else map.setView(D.fallback, 15)" in empty_map
+
+
 def test_page_reads_the_configured_folder_and_says_when_it_is_not_set(folder, monkeypatch) -> None:
     monkeypatch.setenv(ENV_VAR, str(folder))
     at = AppTest.from_file(str(APP), default_timeout=90)
@@ -126,3 +153,35 @@ def test_page_reads_the_configured_folder_and_says_when_it_is_not_set(folder, mo
     bare.run()
     assert not bare.exception
     assert next(control for control in bare.button_group if control.key == "ptw_source").value == "Demo site"
+
+
+def test_permit_map_uses_site_level_ismm_export_without_guessing_buildings(tmp_path, monkeypatch) -> None:
+    from datetime import date
+
+    root = tmp_path / "GBB IOC Datasets"
+    permit_folder = root / "PTW"
+    permit_folder.mkdir(parents=True)
+    columns = ["Permit to Work ID", "Site", "Company", "Trade(s)", "Type", "Start Date", "End Date", "Approved Date", "Remarks"]
+    rows = [
+        ["PTW-001", "Gardens By The Bay (South)", "Alpha Works", "Electrical", "Hot Work", date(2026, 10, 20),
+         date(2026, 10, 22), None, ""],
+        ["PTW-002", "Gardens By The Bay (East)", "Beta Services", "Mechanical", "Other", date(2026, 10, 20),
+         date(2026, 10, 21), None, ""],
+        ["PTW-003", "Gardens By The Bay (Central)", "Gamma Services", "Building", "Other", date(2026, 10, 20),
+         date(2026, 10, 21), None, ""],
+    ]
+    pd.DataFrame([["Permit to Work 2026-10-20 16:02:07"] + [None] * (len(columns) - 1), columns, *rows]).to_excel(
+        permit_folder / "site permits.xlsx", header=False, index=False)
+    monkeypatch.setenv(ENV_VAR, str(root))
+
+    at = AppTest.from_file(str(APP), default_timeout=90)
+    at.query_params["view"] = "ptw-map"
+    at.run()
+
+    assert not at.exception
+    assert next(control for control in at.button_group if control.key == "ptw_source").value == "Real permits"
+    permit_table = next(frame.value for frame in at.dataframe if {"Permit", "Site"} <= set(frame.value.columns))
+    assert len(permit_table) == 3
+    assert "Map location" not in permit_table.columns
+    assert permit_table.loc[permit_table["Site"].str.endswith("(Central)"), "Site"].size == 1
+    assert any("exact work location" in item.value.lower() for item in at.info)

@@ -36,6 +36,7 @@ class Page:
     module: str = ""       # site module rendered by this page, if any
     replay_page: str = ""  # name used inside the diagnostics workbench, if any
     secondary: bool = False
+    client: bool = False   # shown in the client view; the rest are internal, engineering or demo pages
 
 
 AREAS = ("Site Overview", "Site Map & PTW", "Asset Health & Engineering", "Faults & Investigations",
@@ -43,9 +44,16 @@ AREAS = ("Site Overview", "Site Map & PTW", "Asset Health & Engineering", "Fault
 
 PAGES = (
     Page("overview", "Site overview", "Site Overview", MIXED, "Summary across the areas below; each figure keeps its own meaning",
-         "What needs attention across the site right now?"),
-    Page("ptw-map", "PTW map", "Site Map & PTW", SITE, "PTW timing: active now or later today. Not a risk rating",
-         "Where are permits to work today, and what do they isolate or close?", module="ptw_dashboard"),
+         "What needs attention across the site right now?", client=True),
+    Page("ptw-map", "Permit map", "Site Map & PTW", SITE, "PTW timing: active now or later today. Not a risk rating",
+         "Where are permits to work today, and what do they isolate or close?", module="ptw_dashboard", client=True),
+    Page("permits", "Tool-box meetings", "Site Map & PTW", IMPORTED, "Safety briefings held by date, site and contractor",
+         "Which tool-box meetings were recorded, and when?", client=True),
+    Page("spares", "Inventories", "Asset Health & Engineering", IMPORTED, "Stock against each item's minimum: out, below minimum, OK",
+         "Which items are available, low or out of stock?", client=True),
+    Page("smart-assets", "Smart asset sample", "Asset Health & Engineering", REPLAY,
+         "Synthetic prototype telemetry; illustrative thresholds, not live site data",
+         "How do sample motor readings and events change over time?", client=True),
     Page("assets", "Asset overview", "Asset Health & Engineering", MIXED,
          "Operational state (site assets) and diagnostic findings (replay assets), in separate columns",
          "Which assets exist in each category, and which need attention in their own terms?"),
@@ -65,17 +73,17 @@ PAGES = (
     Page("work-orders", "Work orders", "Faults & Investigations", REPLAY,
          "Work-order status: Open, In progress, Closed",
          "Which faults recur, and what corrective work is open?", replay_page="Maintenance"),
-    Page("fault-log", "Fault log", "Faults & Investigations", IMPORTED,
+    Page("fault-log", "Faults & requests", "Faults & Investigations", IMPORTED,
          "Fault state as at the export: Open, In progress, Completed, Cancelled. Impact as recorded, not a severity",
-         "Which real faults were open, and how did reporting and completion move?"),
+         "Which faults are open now, and how fast are they handled?", client=True),
     Page("investigations", "Investigations", "Faults & Investigations", REPLAY,
          "Detector cases with evidence, review decisions, data-quality issues and provenance",
          "Which cases need review, and what is the evidence?", replay_page="Investigate"),
     Page("event-power", "Event power", "Operations & Planning", SITE, "Socket state: In use, Free, Warning, Tripped, No supply",
-         "Which event sockets are in use, and is any event without power?", module="event_power"),
-    Page("calendar", "Operational calendar", "Operations & Planning", SITE,
+         "Which event sockets are in use, and is any event without power?", module="event_power", client=True),
+    Page("calendar", "Events calendar", "Operations & Planning", SITE,
          "Imported event orders, or the demo's planned permits, events and maintenance with clashes marked",
-         "What is planned this week, and where do permits and events overlap?", module="calendar_overview"),
+         "What is planned this week, and where do permits and events overlap?", module="calendar_overview", client=True),
     Page("rooms", "Room booking", "Operations & Planning", SITE, "Room availability: In use or Free",
          "Book or cancel a meeting room.", module="room_booking", secondary=True),
     Page("assets-import", "Data import", "Administration & Integrations", REPLAY,
@@ -84,6 +92,9 @@ PAGES = (
     Page("displays", "Screens", "Administration & Integrations", MIXED,
          "Which display each 55-inch screen shows, and the address for each screen and for the 2x2 wall",
          "Assign displays to the four screens, preview them and open presentation mode."),
+    Page("demo-workspace", "Display wall", "Administration & Integrations", NONE,
+         "Arrange four live page previews for a 2×2 display wall",
+         "Which four pages should appear on the display wall?", client=True),
     Page("architecture", "Platform architecture", "Administration & Integrations", REPLAY,
          "Data-source status: Live, Manual, Planned (border style, not colour)",
          "How does data reach this application, and what is planned?", replay_page="System map"),
@@ -103,5 +114,5 @@ def resolve(key: object) -> str:
     return key if isinstance(key, str) and key in PAGE else DEFAULT
 
 
-def area_pages(area: str, secondary: bool = False) -> list[Page]:
-    return [page for page in PAGES if page.area == area and page.secondary == secondary]
+def area_pages(area: str, secondary: bool = False, client_only: bool = False) -> list[Page]:
+    return [page for page in PAGES if page.area == area and page.secondary == secondary and (page.client or not client_only)]

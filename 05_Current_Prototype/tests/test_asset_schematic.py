@@ -79,7 +79,9 @@ def test_a_feed_loop_in_bad_data_does_not_hang() -> None:
 
 def test_tab_renders_and_the_permit_page_names_unconnected_devices(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "demo.site_db", FAKE_DB)
-    at = AppTest.from_file(str(APP), default_timeout=60).run()
+    at = AppTest.from_file(str(APP), default_timeout=60)
+    at.query_params["all"] = "1"
+    at.run()
     at.button(key="nav-electrical").click().run()
     assert not at.exception
     text = "\n".join(item.value for item in at.markdown)
