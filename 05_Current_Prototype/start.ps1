@@ -1,4 +1,4 @@
-param([int]$Port = 8501)
+param([int]$Port = 8501, [string]$DataDir = '')  # -DataDir: folder of real GBB Excel exports (sets GBB_DATA_DIR)
 $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 $appPath = Join-Path $projectRoot 'app.py'
@@ -16,6 +16,10 @@ if (Test-Path -LiteralPath $pidPath) {
 }
 $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if ($listener) { throw "Port $Port is already occupied. Use -Port with a free port." }
+if ($DataDir) {
+    if (!(Test-Path -LiteralPath $DataDir -PathType Container)) { throw "Data folder not found: $DataDir" }
+    $env:GBB_DATA_DIR = $DataDir
+}
 $pythonPath = (Get-Command python -ErrorAction Stop).Source
 $localPython = Join-Path $projectRoot '.venv\Scripts\python.exe'
 if (Test-Path -LiteralPath $localPython) { $pythonPath = $localPython }

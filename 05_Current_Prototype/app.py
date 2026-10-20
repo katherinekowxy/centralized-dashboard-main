@@ -994,11 +994,11 @@ def source_badge(page: navigation.Page) -> str:
     return brand.demo_badge(navigation.SOURCE_LABEL[page.source]) if page.source != navigation.NONE else ""
 
 
-def page_header(page: navigation.Page, title: bool = True) -> None:
+def page_header(page: navigation.Page, title: bool = True, badge: str | None = None) -> None:
     """Where you are, where the numbers come from, and which status vocabulary this page uses."""
     st.markdown(f'<div class="ioc-head"><div class="ioc-crumb">{esc(page.area)}</div>'
                 + (f'<div class="ioc-title">{esc(page.label)}</div>' if title else "")
-                + f'<div class="ioc-meta">{source_badge(page)}<span><em>Shows:</em> {esc(page.status)}</span></div></div>',
+                + f'<div class="ioc-meta">{source_badge(page) if badge is None else badge}<span><em>Shows:</em> {esc(page.status)}</span></div></div>',
                 unsafe_allow_html=True)
 
 
@@ -1014,8 +1014,61 @@ def site_header(name: str) -> None:
 OWN_TITLE = {"asset_dashboard", "asset_schematic"}  # these draw their own TV-scale title and counts
 
 
+PTW_SOURCES = ("Imported permit records", "Site demo (synthetic)")
+
+
+@st.cache_data(ttl=600, show_spinner="Reading permit files...")
+def _real_permits(folder: str, stamp: tuple) -> tuple[dict, dict, list]:
+    """Permit forms and building locations, re-read when any file changes (``stamp``) or after ten minutes."""
+    from pathlib import Path as _Path
+
+    from demo.sources import locations, ptw_forms
+
+    root = _Path(folder)
+    buildings, problems = locations.load_buildings(root)
+    matcher = locations.Matcher(locations.load_aliases(), buildings)
+    return ptw_forms.load(root, matcher), buildings, problems
+
+
+def real_permits(folder: str) -> tuple[dict, dict, list]:
+    from pathlib import Path as _Path
+
+    root = _Path(folder)
+    files = [root / "Building Location.xlsx", *sorted((root / "PERMIT-TO-WORK").glob("*.xlsx"))]
+    return _real_permits(folder, tuple((path.name, path.stat().st_mtime) for path in files if path.is_file()))
+
+
+def ptw_page(page: navigation.Page) -> None:
+    """PTW map: imported permit forms on the client's location mapping, or the synthetic site demo with its impacts."""
+    from demo import ptw_real, sources
+
+    folder = sources.data_dir()
+    default = PTW_SOURCES[0] if folder else PTW_SOURCES[1]
+    choice = st.session_state.get("ptw_source") or default
+    badge = (brand.source_badge("imported").replace("Imported file", "Imported permit records · not live")
+             if choice == PTW_SOURCES[0] else None)
+    page_header(page, badge=badge)
+    choice = st.segmented_control("Permit source", PTW_SOURCES, default=default, key="ptw_source") or default
+    if choice == PTW_SOURCES[1]:
+        st.caption("Synthetic permits on the site demo map, with their affected assets, isolations and downstream impact.")
+        db, module = site_db(), site_module(page.module)
+        if db is None or module is None:
+            st.info("The site database could not be loaded.")
+            return
+        module.render(db)
+        return
+    if folder is None:
+        st.info(f"Real permit files are not configured. Set the environment variable {sources.ENV_VAR} to the folder that holds "
+                "PERMIT-TO-WORK and Building Location.xlsx, then restart the app. The synthetic site demo is still available above.")
+        return
+    ptw_real.render(folder, real_permits)
+
+
 def site_page(page: navigation.Page) -> None:
     st.markdown(f"<style>{SITE_CSS}</style>", unsafe_allow_html=True)
+    if page.key == "ptw-map":
+        ptw_page(page)
+        return
     page_header(page, title=page.module not in OWN_TITLE)
     db, module = site_db(), site_module(page.module)
     if db is None or module is None:

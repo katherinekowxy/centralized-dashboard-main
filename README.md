@@ -21,7 +21,7 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 | Area | Page (`?view=`) | Shows | Data |
 | --- | --- | --- | --- |
 | Site Overview | Site overview (`overview`) | What needs attention now, asset operational state, permits, event power, diagnostics replay findings, what is coming up, and data sources; each figure comes from the page that owns it | Site + replay |
-| Site Map & PTW | PTW map (`ptw-map`) | Today's permits on a street map; click a permit for what it isolates or closes | Site |
+| Site Map & PTW | PTW map (`ptw-map`) | **Imported permit records** from the real permit forms on the client's Power BI location mapping (markers, clusters, density layer, filters, exception list, validation report), or the synthetic site demo with each permit's isolations and closures | Imported or Site |
 | Asset Health & Engineering | Fleet operational status (`asset-status`) | Operational state of every site asset by zone | Site |
 | | Electrical distribution (`electrical`) | Distribution boards and the devices downstream of a problem | Site |
 | | Diagnostic findings (`diagnostics`) | Rule-based detector findings for the monitored demonstration assets | Replay |
@@ -36,6 +36,17 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 | | External platform research (`research`) | Vendor reference material; none of it is integrated | Reference |
 
 **Site** pages read the synthetic site database. **Replay** pages read a replayed synthetic sensor scenario with its own five demonstration assets ([05_Current_Prototype/README.md](05_Current_Prototype/README.md) walks through it). The two datasets do not share asset IDs, so they are kept on separate pages. Every page uses one light design with Gardens by the Bay colours (`05_Current_Prototype/demo/brand.py`).
+
+## Real data (read-only)
+
+The PTW map can read the real permit-form exports. Point the app at the folder holding `PERMIT-TO-WORK/` and `Building Location.xlsx` before starting it:
+
+```powershell
+cd 05_Current_Prototype
+.\start.ps1 -DataDir "C:\Users\you\BI Report Dataset\GBB"
+```
+
+or set the environment variable `GBB_DATA_DIR` to that folder. The files stay where they are. They are read when a page loads (and cached for ten minutes), never copied into this repository, and never written. Personal details on the forms (names, phone numbers, e-mail addresses) are not read. Imported records are labelled "imported, not live" and are never mixed with synthetic records. Location matching uses the client's Power BI alias table (`05_Current_Prototype/assets/maps/ptw_location_aliases.csv`). Building coordinates come from `Building Location.xlsx` and are approximate until verified there. `05_Current_Prototype/demo/sources/` documents the column mapping and validation rules.
 
 ## Tests
 

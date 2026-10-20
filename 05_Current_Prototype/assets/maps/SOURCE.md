@@ -8,3 +8,9 @@
 - SHA-256: `382aa696fc7fa38f1596997d79cf484d49edd59b8295b482e7fd79e5c10737e4`
 - © Gardens by the Bay. Used internally by Gardens by the Bay staff (Dan) for this demo. Do not publish or include in a public portfolio without permission.
 - It is the only real (non-synthetic) data in the site dashboards.
+
+# PTW location mapping (20 October 2026)
+
+- `ptw_location_aliases.csv`: the 57 rows of the hidden `PTW Location Alias` table in the client's GBB Power BI report, exported unchanged on 20 October 2026. Each row maps a free-text name used on permit forms to a building.
+- Building coordinates are **not** copied into this repository. They are read at run time from `Building Location.xlsx` in the GBB data folder, which is the source of the report's `PTW Zone` table (49 buildings; identical values checked on 20 October 2026). Every row is marked `Verified = No`. The workbook's notes call the coordinates approximate placeholders, so the map labels every point as approximate.
+- Three pairs of buildings share one coordinate: Carpark and Carparks, Coach Park and Coach Bay, and GBHQ and BMS Room. The map shows one point for each pair and counts a permit there once.
