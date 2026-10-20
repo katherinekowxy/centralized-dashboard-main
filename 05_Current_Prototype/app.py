@@ -957,10 +957,13 @@ SHELL_CSS = """
 [data-testid="stSidebarHeader"] {display:none}
 .ioc-logo {padding:22px 10px 18px;margin:0 0 4px;border-bottom:1px solid var(--gbb-line)}
 .ioc-logo small {display:block;margin-top:8px;font-size:12px;font-weight:800;color:var(--gbb-ink-3);letter-spacing:.04em}
-.ioc-area {font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gbb-ink-3);margin:0;padding:16px 0 4px 10px}
+.ioc-area {display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--gbb-ink);margin:10px 0 2px;padding:14px 0 6px 8px;border-top:1px solid var(--gbb-line)}
+.ioc-area::before {content:"";flex:none;width:3px;height:13px;border-radius:2px;background:var(--gbb-pink)}
+.st-key-ioc-nav > div:first-child .ioc-area, .ioc-logo + div .ioc-area:first-of-type {border-top:none}
 .st-key-ioc-nav, .st-key-ioc-nav [data-testid="stVerticalBlock"] {gap:2px !important}
 .st-key-ioc-nav [data-testid="stMarkdownContainer"] {margin-bottom:0 !important}
-[class*="st-key-nav-"] button {width:100%;justify-content:flex-start !important;min-height:32px;padding:4px 10px !important;border-radius:6px}
+[class*="st-key-nav-"] button {width:100%;justify-content:flex-start !important;min-height:32px;padding:4px 10px 4px 19px !important;border-radius:6px}
 [class*="st-key-nav-"] button > div {justify-content:flex-start;width:100%}
 [class*="st-key-nav-"] [data-testid="stBaseButton-tertiary"]:hover {background:var(--gbb-surface-3)}
 [class*="st-key-nav-"] button p {font-size:14px !important;font-weight:500 !important;color:var(--gbb-ink-2) !important;text-align:left}
