@@ -25,7 +25,7 @@ from demo.sources.ptw_forms import SGT, timing, unique
 
 CLUSTER = "https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist"
 HEAT = "https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"
-PERIODS = ("Active today", "Next 7 days", "Last 30 days", "Year to date", "All records")
+PERIODS = ("Today", "Next 7 days", "Last 30 days", "This year", "All")
 APPROVAL_WORD = {key: word for key, (_, word, _) in brand.PTW_APPROVAL.items()}
 TIMING_WORD = {key: word for key, (_, word, _) in brand.PTW_TIMING.items()}
 
@@ -36,12 +36,12 @@ def esc(value: Any) -> str:
 
 def period_window(period: str, now: datetime) -> tuple[datetime | None, datetime | None]:
     day = now.astimezone(SGT).replace(hour=0, minute=0, second=0, microsecond=0)
-    return {"Active today": (now, now), "Next 7 days": (now, day + timedelta(days=8)),
-            "Last 30 days": (day - timedelta(days=30), now), "Year to date": (day.replace(month=1, day=1), now),
-            "All records": (None, None)}[period]
+    return {"Today": (now, now), "Next 7 days": (now, day + timedelta(days=8)),
+            "Last 30 days": (day - timedelta(days=30), now), "This year": (day.replace(month=1, day=1), now),
+            "All": (None, None)}[period]
 
 
-def select(records: list[dict], now: datetime, period: str = "Active today", sites: list[str] | None = None,
+def select(records: list[dict], now: datetime, period: str = "Today", sites: list[str] | None = None,
            forms: list[str] | None = None, approvals: list[str] | None = None, buildings: list[str] | None = None,
            text: str = "") -> list[dict]:
     """Unique permits matching every filter; a permit is in a period when its window overlaps it."""
@@ -158,17 +158,17 @@ def map_page(points: list[dict]) -> str:
 
 CSS = """
 .rp-figs {display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin:.2rem 0 .8rem}
-.rp-fig b {font-size:1.6rem;font-weight:750;font-variant-numeric:tabular-nums;margin-right:.35rem}
-.rp-fig span {font-size:.88rem;color:var(--gbb-ink-2)}
-.rp-note {font-size:.8rem;color:var(--gbb-ink-3);margin:.3rem 0 .6rem;line-height:1.45}
+.rp-fig b {font-size:18px;font-weight:750;font-variant-numeric:tabular-nums;margin-right:.35rem}
+.rp-fig span {font-size:13px;color:var(--gbb-ink-2)}
+.rp-note {font-size:12px;color:var(--gbb-ink-3);margin:.3rem 0 .6rem;line-height:1.45}
 .rp-loc {list-style:none;margin:0;padding:0;max-height:560px;overflow:auto}
-.rp-loc li {display:flex;justify-content:space-between;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--gbb-line);font-size:.9rem}
+.rp-loc li {display:flex;justify-content:space-between;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--gbb-line);font-size:13px}
 .rp-loc b {font-variant-numeric:tabular-nums}
-.rp-loc small {display:block;color:var(--gbb-ink-3);font-size:.76rem}
+.rp-loc small {display:block;color:var(--gbb-ink-3);font-size:12px}
 .rp-detail {display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:.8rem 1.2rem;margin:.4rem 0 .8rem}
-.rp-detail div small {display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
-.rp-detail div span {font-size:.95rem}
-.rp-missing {border:1.5px dashed var(--gbb-line-strong);border-radius:var(--gbb-radius);padding:.6rem .8rem;font-size:.86rem;color:var(--gbb-ink-2)}
+.rp-detail div small {display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
+.rp-detail div span {font-size:13px}
+.rp-missing {border:1.5px dashed var(--gbb-line-strong);border-radius:var(--gbb-radius);padding:.6rem .8rem;font-size:13px;color:var(--gbb-ink-2)}
 """
 
 ISSUE_WORD = {"unknown_location": "Location not recognised", "partial_location": "Location partly recognised",
@@ -189,50 +189,38 @@ def render(folder, load_data) -> None:
     records = permits["records"]
     now = datetime.now(SGT)
     point_of = building_points(buildings)
-    st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
-    modified = permits["modified"].strftime("%d %b %Y %H:%M") if permits["modified"] else "unknown"
-    st.markdown(f'<div class="rp-note">{len(permits["files"])} Excel exports from the permit forms, '
-                f'files last modified {modified} SGT. Read when this page loads; not a live feed. Times are as written on the forms (SGT).</div>',
-                unsafe_allow_html=True)
+    from demo import ui
 
+    st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
     all_unique = unique(records)
-    c1, c2, c3, c4 = st.columns([1.5, 1, 1.4, 1])
+    c1, c2, c3, c4 = st.columns([2.2, 1, 1, 1.4])
     with c1:
-        period = st.segmented_control("Period", PERIODS, default="Active today", key="rp_period") or "Active today"
+        period = st.segmented_control("Period", PERIODS, default="Today", key="rp_period") or "Today"
     with c2:
-        sites = st.multiselect("Site", sorted({r["site"] for r in all_unique if r["site"]}), key="rp_sites", placeholder="All sites")
+        sites = st.multiselect("Site", sorted({r["site"] for r in all_unique if r["site"]}), key="rp_sites", placeholder="All")
     with c3:
-        forms = st.multiselect("Form type", sorted({r["form"] for r in all_unique}), key="rp_forms", placeholder="All forms")
+        approvals = st.multiselect("Approval", list(APPROVAL_WORD), format_func=APPROVAL_WORD.get, key="rp_approval", placeholder="Any")
     with c4:
-        approvals = st.multiselect("Approval", list(APPROVAL_WORD), format_func=APPROVAL_WORD.get, key="rp_approval", placeholder="Any decision")
-    c5, c6 = st.columns([2, 1.4])
-    with c5:
-        chosen = st.multiselect("Location", sorted(buildings), key="rp_buildings", placeholder="All mapped locations")
-    with c6:
-        text = st.text_input("Search reference, company or work", key="rp_text")
+        text = st.text_input("Search", key="rp_text", placeholder="Reference, company or work")
+    with st.expander("More filters", expanded=False):
+        f1, f2 = st.columns(2)
+        forms = f1.multiselect("Form type", sorted({r["form"] for r in all_unique}), key="rp_forms", placeholder="All forms")
+        chosen = f2.multiselect("Location", sorted(buildings), key="rp_buildings", placeholder="All locations")
     shown = select(records, now, period, sites, forms, approvals, chosen, text)
     points, unplaced = map_points(shown, point_of, now)
     states = [timing(record, now) for record in shown]
-    figs = [(len(shown), "permits in this selection"), (states.count("active"), "active now"),
-            (states.count("later"), "start later"), (len(shown) - len(unplaced), "placed on the map"),
-            (len(unplaced), "not placed (see exceptions)")]
-    st.markdown('<div class="rp-figs">' + "".join(f'<span class="rp-fig"><b>{n}</b><span>{esc(w)}</span></span>' for n, w in figs) + "</div>",
-                unsafe_allow_html=True)
+    st.markdown(ui.kpis([{"label": "Permits", "value": len(shown), "caption": period},
+                         {"label": "Active now", "value": states.count("active"), "caption": "Within their window"},
+                         {"label": "Start later", "value": states.count("later"), "caption": "Not started yet"},
+                         {"label": "Not on the map", "value": len(unplaced), "caption": "Location not recognised"}]), unsafe_allow_html=True)
 
     left, right = st.columns([2.6, 1], gap="medium")
     with left:
         components.html(map_page(points), height=560)
-        st.markdown('<div class="rp-note">The number on a marker is how many permits in this selection name that location: a count, '
-                    'not a risk level. Dashed rings mark coordinates that are approximate (all are, until verified in Building Location.xlsx). '
-                    'A permit naming several buildings appears at each; the totals above count it once.</div>', unsafe_allow_html=True)
+        st.caption("Marker number = permits at that location (a count, not risk). Positions are approximate.")
     with right:
-        st.markdown('<div class="sd-section">Permits by location</div>', unsafe_allow_html=True)
-        if points:
-            st.markdown('<ul class="rp-loc">' + "".join(
-                f'<li><span>{esc(" / ".join(point["names"]))}<small>{"approximate position" if not point["verified"] else "verified position"}</small></span>'
-                f'<b>{point["count"]}</b></li>' for point in points) + "</ul>", unsafe_allow_html=True)
-        else:
-            st.caption("No permit in this selection can be placed on the map.")
+        rows = [{"main": " / ".join(point["names"]), "right": ui.pill("neutral", str(point["count"]))} for point in points]
+        st.markdown(ui.panel("By location", ui.rows(rows, "No permit in this selection is on the map.")), unsafe_allow_html=True)
 
     tab_list, tab_exceptions, tab_report = st.tabs([f"Permits ({len(shown)})", f"Location exceptions ({len(unplaced)})", "Validation report"])
     with tab_list:
@@ -249,8 +237,7 @@ def render(folder, load_data) -> None:
             else:
                 st.caption("Select a row to see the permit.")
     with tab_exceptions:
-        st.caption("Permits in this selection that cannot be placed: the location text names no known building, or the dates cannot be read. "
-                   "Their original text is kept as written.")
+        st.caption("Location text names no known building, or the dates cannot be read.")
         if unplaced:
             st.dataframe(pd.DataFrame([{"Reference": r["ref"], "Location (as written)": r["location_raw"], "Window (SGT)": window_text(r),
                                         "Company": r["company"], "File": r["source_file"], "Row": r["source_row"]} for r in unplaced]),
@@ -265,8 +252,7 @@ def render(folder, load_data) -> None:
     with tab_report:
         issues = building_problems + permits["issues"]
         counts = pd.Series([ISSUE_WORD.get(item["issue"], item["issue"]) for item in issues]).value_counts()
-        st.caption(f"All {len(records)} rows read from {len(permits['files'])} files and the building list, before filters. "
-                   "Rows with problems are kept and listed here; none is dropped silently.")
+        st.caption(f"{len(records)} rows from {len(permits['files'])} files. Problem rows are kept and listed.")
         if issues:
             st.dataframe(counts.rename_axis("Issue").reset_index(name="Rows"), hide_index=True)
             report = pd.DataFrame(issues)[["issue", "detail", "ref", "field", "value", "file", "row"]]

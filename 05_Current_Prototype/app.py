@@ -37,19 +37,18 @@ STATUS_WORD = {key: word for key, (_, word, _) in brand.DIAGNOSTIC.items()}
 st.set_page_config(page_title="Gardens by the Bay | Facilities IOC", page_icon="◆", layout="wide")
 st.markdown(brand.style() + """
 <style>
-.block-container {max-width:1380px;padding-top:3.6rem;padding-bottom:2rem}
 .sd-head {display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap;margin:.15rem 0}
-.sd-title {font-size:2rem;font-weight:750;letter-spacing:-.03em;line-height:1.08;color:var(--gbb-ink)}
-.sd-badge {color:var(--gbb-ink-2);border:1.5px dashed var(--gbb-ink-3);border-radius:.35rem;padding:.12rem .55rem;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.sd-title {font-size:24px;font-weight:750;letter-spacing:-.03em;line-height:1.08;color:var(--gbb-ink)}
+.sd-badge {color:var(--gbb-ink-2);border:1.5px dashed var(--gbb-ink-3);border-radius:.35rem;padding:.12rem .55rem;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 [data-testid="stBaseButton-primary"], [data-testid="stBaseButton-primary"] p {color:#fff !important}
-.sd-sub {color:var(--gbb-ink-2);font-size:.82rem;margin:.2rem 0 1rem}
-.sd-section {font-size:1.08rem;font-weight:700;margin:.8rem 0 .35rem;letter-spacing:-.01em;color:var(--gbb-ink)}
-.sd-muted {color:var(--gbb-ink-3);font-size:.76rem}
+.sd-sub {color:var(--gbb-ink-2);font-size:12px;margin:.2rem 0 1rem}
+.sd-section {font-size:14px;font-weight:700;margin:.8rem 0 .35rem;letter-spacing:-.01em;color:var(--gbb-ink)}
+.sd-muted {color:var(--gbb-ink-3);font-size:12px}
 .sd-card {background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.8rem 1rem;min-height:6rem}
-.sd-card-label {color:var(--gbb-ink-3);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
-.sd-card-value {font-size:1.7rem;font-weight:750;line-height:1.2;margin:.15rem 0}
-.sd-card-foot {color:var(--gbb-ink-3);font-size:.74rem}
-.sd-chip {display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--gbb-line-strong);border-radius:99px;padding:.12rem .55rem;margin:.2rem .3rem .2rem 0;color:var(--gbb-ink-2);font-size:.72rem}
+.sd-card-label {color:var(--gbb-ink-3);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.sd-card-value {font-size:18px;font-weight:750;line-height:1.2;margin:.15rem 0}
+.sd-card-foot {color:var(--gbb-ink-3);font-size:12px}
+.sd-chip {display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--gbb-line-strong);border-radius:99px;padding:.12rem .55rem;margin:.2rem .3rem .2rem 0;color:var(--gbb-ink-2);font-size:12px}
 .sd-dot {display:inline-block;width:.62rem;height:.62rem;border-radius:50%;flex:none;vertical-align:middle}
 .sd-dot-lg {width:.85rem;height:.85rem}
 .sd-dot-alert {background:#B91C1C;box-shadow:0 0 0 3px rgba(185,28,28,.18)}
@@ -57,31 +56,31 @@ st.markdown(brand.style() + """
 .sd-dot-ok {background:#0F766E}
 .sd-dot-idle {background:transparent;border:2px solid #8A8F93}
 .sd-tally {display:flex;gap:.6rem;flex-wrap:wrap;margin:.2rem 0 1rem}
-.sd-tally > span {display:inline-flex;align-items:center;gap:.5rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.45rem .8rem;font-size:.86rem;color:var(--gbb-ink-2)}
-.sd-tally b {font-size:1.15rem;color:var(--gbb-ink)}
-.sd-asset-id {display:flex;align-items:center;gap:.55rem;font-size:1.25rem;font-weight:750;letter-spacing:-.02em}
-.sd-asset-name {color:var(--gbb-ink-3);font-size:.8rem;margin:.05rem 0 .6rem 1.4rem}
-.sd-headline {font-size:.95rem;font-weight:650;margin:0 0 .55rem;color:var(--gbb-ink)}
+.sd-tally > span {display:inline-flex;align-items:center;gap:.5rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.45rem .8rem;font-size:13px;color:var(--gbb-ink-2)}
+.sd-tally b {font-size:14px;color:var(--gbb-ink)}
+.sd-asset-id {display:flex;align-items:center;gap:.55rem;font-size:16px;font-weight:750;letter-spacing:-.02em}
+.sd-asset-name {color:var(--gbb-ink-3);font-size:12px;margin:.05rem 0 .6rem 1.4rem}
+.sd-headline {font-size:13px;font-weight:650;margin:0 0 .55rem;color:var(--gbb-ink)}
 .sd-pts {display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin:0 0 .75rem}
-.sd-pt {display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--gbb-ink-2)}
+.sd-pt {display:inline-flex;align-items:center;gap:.4rem;font-size:12px;color:var(--gbb-ink-2)}
 .sd-pt-flag {color:var(--gbb-ink);font-weight:650}
-.sd-foot {color:var(--gbb-ink-3);font-size:.72rem;line-height:1.55;border-top:1px solid var(--gbb-line);padding-top:.5rem;margin-bottom:.35rem}
+.sd-foot {color:var(--gbb-ink-3);font-size:12px;line-height:1.55;border-top:1px solid var(--gbb-line);padding-top:.5rem;margin-bottom:.35rem}
 [class*="st-key-fleet-alert"] {border-color:#B91C1C !important;box-shadow:inset 3px 0 0 #B91C1C}
 [class*="st-key-fleet-warn"] {border-color:#B45309 !important;box-shadow:inset 3px 0 0 #B45309}
 .sd-tiles {display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;margin:.2rem 0 .4rem}
 .sd-tile {background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.65rem .8rem}
 .sd-tile-alert {border-color:#B91C1C}
 .sd-tile-warn {border-color:#B45309}
-.sd-tile-name {display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:var(--gbb-ink-2)}
-.sd-tile-value {font-size:1.45rem;font-weight:750;letter-spacing:-.02em;margin:.2rem 0 .05rem;font-variant-numeric:tabular-nums}
-.sd-tile-value small {font-size:.78rem;font-weight:500;color:var(--gbb-ink-3);margin-left:.2rem}
-.sd-tile-note {font-size:.72rem;color:var(--gbb-ink-3)}
-.sd-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;color:var(--gbb-ink-3);font-size:.72rem;margin:.1rem 0 .5rem}
+.sd-tile-name {display:flex;align-items:center;gap:.4rem;font-size:12px;color:var(--gbb-ink-2)}
+.sd-tile-value {font-size:16px;font-weight:750;letter-spacing:-.02em;margin:.2rem 0 .05rem;font-variant-numeric:tabular-nums}
+.sd-tile-value small {font-size:12px;font-weight:500;color:var(--gbb-ink-3);margin-left:.2rem}
+.sd-tile-note {font-size:12px;color:var(--gbb-ink-3)}
+.sd-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;color:var(--gbb-ink-3);font-size:12px;margin:.1rem 0 .5rem}
 .sd-legend span {display:inline-flex;align-items:center;gap:.35rem}
 .sd-swatch {display:inline-block;width:.9rem;height:.55rem;border-radius:2px}
-.sd-point {display:flex;align-items:center;gap:.45rem;font-size:.92rem;font-weight:650}
-.sd-point small {font-size:.75rem;font-weight:500;color:var(--gbb-ink-3);margin-left:.15rem}
-.sd-point-meta {color:var(--gbb-ink-3);font-size:.76rem;margin:.1rem 0 .3rem}
+.sd-point {display:flex;align-items:center;gap:.45rem;font-size:13px;font-weight:650}
+.sd-point small {font-size:12px;font-weight:500;color:var(--gbb-ink-3);margin-left:.15rem}
+.sd-point-meta {color:var(--gbb-ink-3);font-size:12px;margin:.1rem 0 .3rem}
 div[data-testid="stPlotlyChart"] {border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);overflow:hidden}
 </style>""", unsafe_allow_html=True)
 
@@ -200,7 +199,7 @@ def evidence_chart(case: dict, run: dict, readings: list[dict]) -> None:
 def case_panel(case: dict, run: dict) -> None:
     status = SEVERITY_STATUS.get(str(case.get("severity")), "idle")
     with st.container(border=True, key=f"fleet-{status}-case-{case['case_id']}"):
-        st.markdown(f'<div class="sd-asset-id" style="font-size:1.1rem">{dot(status, True)}{esc(case.get("title", case["case_id"]))}</div>'
+        st.markdown(f'<div class="sd-asset-id" style="font-size:14px">{dot(status, True)}{esc(case.get("title", case["case_id"]))}</div>'
                     f'<div class="sd-asset-name">{esc(label(case.get("severity")))} · {esc(label(case.get("category")))} · '
                     f'{esc(case.get("asset_id", "Unlinked"))} · from {esc(fmt_time(case.get("start_at")))}</div>', unsafe_allow_html=True)
         st.write(case.get("summary", ""))
@@ -642,9 +641,7 @@ def fleet_page(run: dict) -> None:
                     st.button(f"Open {aid}", key=f"open-asset-{aid}", width="stretch", on_click=navigate, args=("Asset overview", aid))
     st.markdown(f'<div class="sd-legend" style="margin-top:.8rem">'
                 f'<span>{dot("alert")} Detector finding or trip</span><span>{dot("ok")} Detector checked, no finding</span>'
-                f'<span>{dot("idle")} Not assessed, or data incomplete</span></div>'
-                '<div class="sd-muted">Dots are diagnostic: red means a detector finding or relay trip, never just an unusual reading, '
-                'and the machine may still be safe to operate. Only assets with a detector can be green. Synthetic data.</div>', unsafe_allow_html=True)
+                f'<span>{dot("idle")} Not assessed, or data incomplete</span></div>', unsafe_allow_html=True)
 
 
 def reading_tiles(signals: pd.DataFrame) -> str:
@@ -669,8 +666,8 @@ def asset_page(run: dict, asset_id: str) -> None:
 
     head, action = st.columns([3, 1], vertical_alignment="center")
     with head:
-        st.markdown(f'<div class="sd-asset-id" style="font-size:1.45rem">{dot(state["status"], True)}{esc(asset_id)} '
-                    f'<span style="color:{MUTED};font-size:.95rem;font-weight:500">{esc(asset["name"])}</span></div>'
+        st.markdown(f'<div class="sd-asset-id" style="font-size:16px">{dot(state["status"], True)}{esc(asset_id)} '
+                    f'<span style="color:{MUTED};font-size:13px;font-weight:500">{esc(asset["name"])}</span></div>'
                     f'<div class="sd-headline" style="margin:.35rem 0 .3rem 1.4rem">{esc(state["headline"])}</div>'
                     f'<div style="margin-left:1.4rem">'
                     f'<span class="sd-chip">{dot(FEED_STATUS.get(bucket["freshness"], "idle"))}Feed {esc(bucket["freshness"])}</span>'
@@ -755,7 +752,7 @@ def asset_page(run: dict, asset_id: str) -> None:
             for pair in range(0, len(points), 2):
                 for col, point_id in zip(st.columns(2), points[pair:pair + 2]):
                     signal = by_point[point_id]
-                    with col, st.container(border=True):
+                    with col, st.container(border=True, key=f"card-{asset_id}-{point_id}"):
                         st.markdown(f'<div class="sd-point">{dot(signal["status"])}{esc(signal["name"])}'
                                     f'<span style="margin-left:auto;font-variant-numeric:tabular-nums">{signal_value(signal)}</span></div>'
                                     f'<div class="sd-point-meta">{esc(signal["note"])} · {esc(signal["freshness"])} · last {esc(fmt_time(signal["observed_at"]))}</div>',
@@ -953,69 +950,63 @@ def site_db():
     return db
 
 
-SITE_CSS = """
-html {font-size:18px}  /* Site pages are read by older staff (Dan, 12 October 2026): every rem is 12.5 % bigger */
-.block-container {max-width:none !important;padding:2.6rem 1.6rem 1rem !important}  /* the whole screen, little scrolling */
-.sd-head {margin:0 0 .5rem}
-.sd-page {font-size:1.35rem;font-weight:750;color:var(--gbb-ink);margin-left:.2rem}
-"""
+SITE_CSS = ""  # site pages now share the operator type scale (brand.TYPE); TV sizes live only in presentation mode
 
 SHELL_CSS = """
-.ioc-brand {display:flex;align-items:center;gap:.55rem;margin:0 0 .4rem;padding:0 0 .7rem;border-bottom:1px solid var(--gbb-line)}
-.ioc-brand i {flex:none;width:.35rem;height:2.2rem;border-radius:2px;background:var(--gbb-pink)}
-.ioc-brand b {display:block;font-size:16px;font-weight:750;color:var(--gbb-ink);line-height:1.15}
-.ioc-brand small {display:block;font-size:12.5px;color:var(--gbb-ink-2)}
-.ioc-area {font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gbb-ink-3);margin:0;padding:18px 0 6px 10px}
-.st-key-ioc-nav, .st-key-ioc-nav [data-testid="stVerticalBlock"] {gap:.05rem !important}
+[data-testid="stSidebar"] > div:first-child {padding-top:0}
+[data-testid="stSidebarHeader"] {display:none}
+.ioc-logo {padding:22px 10px 18px;margin:0 0 4px;border-bottom:1px solid var(--gbb-line)}
+.ioc-logo small {display:block;margin-top:8px;font-size:12px;font-weight:600;color:var(--gbb-ink-3);letter-spacing:.04em}
+.ioc-area {font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gbb-ink-3);margin:0;padding:16px 0 4px 10px}
+.st-key-ioc-nav, .st-key-ioc-nav [data-testid="stVerticalBlock"] {gap:2px !important}
 .st-key-ioc-nav [data-testid="stMarkdownContainer"] {margin-bottom:0 !important}
 [class*="st-key-nav-"] button {width:100%;justify-content:flex-start !important;min-height:32px;padding:4px 10px !important;border-radius:6px}
 [class*="st-key-nav-"] button > div {justify-content:flex-start;width:100%}
 [class*="st-key-nav-"] [data-testid="stBaseButton-tertiary"]:hover {background:var(--gbb-surface-3)}
-[class*="st-key-nav-"] button p {font-size:14.5px;text-align:left}
-[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] {background:var(--gbb-pink-tint) !important;border:none !important;
-  box-shadow:inset 3px 0 0 var(--gbb-pink)}
-[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] p {color:var(--gbb-pink-dark) !important;font-weight:700}
-.ioc-head {margin:0 0 .9rem;padding:0 0 .6rem;border-bottom:1px solid var(--gbb-line)}
-.ioc-crumb {font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
-.ioc-title {font-size:1.75rem;font-weight:750;letter-spacing:-.02em;line-height:1.15;color:var(--gbb-ink);margin:.1rem 0 .35rem}
-.ioc-meta {display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .8rem;font-size:.8rem;color:var(--gbb-ink-2)}
-.ioc-meta em {font-style:normal;color:var(--gbb-ink-3)}
-.ioc-dir {display:grid;grid-template-columns:repeat(auto-fill,minmax(21rem,1fr));gap:1rem 1.4rem;margin:.4rem 0 1rem}
-.ioc-dir h3 {font-size:1rem !important;font-weight:750;margin:0 0 .35rem !important;padding:0 !important;color:var(--gbb-ink)}
+[class*="st-key-nav-"] button p {font-size:14px !important;font-weight:500 !important;color:var(--gbb-ink-2) !important;text-align:left}
+[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] {background:var(--gbb-pink-tint) !important;border:none !important}
+[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] p {color:var(--gbb-pink-dark) !important;font-weight:700 !important}
+.ioc-dir {display:grid;grid-template-columns:repeat(auto-fill,minmax(18rem,1fr));gap:12px 20px;margin:4px 0}
+.ioc-dir h3 {font-size:14px !important;font-weight:700;margin:0 0 4px !important;padding:0 !important;color:var(--gbb-ink)}
 .ioc-dir ul {list-style:none;margin:0;padding:0}
-.ioc-dir li {margin:0 0 .45rem;font-size:.86rem;line-height:1.35;color:var(--gbb-ink-2)}
-.ioc-dir li a {font-weight:650;text-decoration:none}
-.ioc-dir li span {display:block;font-size:.76rem;color:var(--gbb-ink-3)}
+.ioc-dir li {margin:0 0 4px;font-size:13px;color:var(--gbb-ink-2)}
+.ioc-dir li a {font-weight:600;text-decoration:none}
+.ioc-dir li span {display:none}
 """
+
+SOURCE_TAG = {navigation.SITE: "Demo data", navigation.REPLAY: "Demo scenario", navigation.MIXED: "Demo data",
+              navigation.IMPORTED: "Imported · not live"}
 
 
 def source_badge(page: navigation.Page) -> str:
     if page.source == navigation.REFERENCE:
-        return '<span class="gbb-source" style="--b:dotted">External reference · not integrated</span>'
-    return brand.demo_badge(navigation.SOURCE_LABEL[page.source]) if page.source != navigation.NONE else ""
+        return '<span class="gbb-source">Reference only · not integrated</span>'
+    if page.source == navigation.IMPORTED:
+        return brand.source_badge("imported").replace("Imported file", SOURCE_TAG[page.source])
+    return brand.demo_badge(SOURCE_TAG[page.source]) if page.source in SOURCE_TAG else ""
 
 
-def page_header(page: navigation.Page, title: bool = True, badge: str | None = None) -> None:
-    """Where you are, where the numbers come from, and which status vocabulary this page uses."""
-    st.markdown(f'<div class="ioc-head"><div class="ioc-crumb">{esc(page.area)}</div>'
-                + (f'<div class="ioc-title">{esc(page.label)}</div>' if title else "")
-                + f'<div class="ioc-meta">{source_badge(page) if badge is None else badge}<span><em>Shows:</em> {esc(page.status)}</span></div></div>',
-                unsafe_allow_html=True)
+def page_header(page: navigation.Page, title: bool = True, badge: str | None = None, sub: str = "") -> None:
+    """Page title and one source tag. What each status means is in the page's own key, not in the header."""
+    from demo import ui
+
+    tag = source_badge(page) if badge is None else badge
+    st.markdown(ui.head(page.label if title else "", sub, [f'<span title="{esc(page.status)}">{tag}</span>']), unsafe_allow_html=True)
 
 
 def site_header(name: str) -> None:
     """Header of a detail page opened in its own tab (?ptw=, ?asset=, ?eo=, ?wo=)."""
-    st.markdown(f"<style>{SITE_CSS}{SHELL_CSS}</style>", unsafe_allow_html=True)
-    st.markdown(f'<div class="ioc-head"><div class="ioc-crumb">Gardens by the Bay · Facilities IOC</div>'
-                f'<div class="ioc-title">{esc(name)}</div>'
-                f'<div class="ioc-meta">{brand.demo_badge(navigation.SOURCE_LABEL[navigation.SITE])}</div></div>',
+    from demo import ui
+
+    st.markdown(f"<style>{SHELL_CSS}</style>", unsafe_allow_html=True)
+    st.markdown(f'<div style="margin:0 0 14px">{ui.logo(36)}</div>' + ui.head(name, "", [brand.demo_badge("Demo data")]),
                 unsafe_allow_html=True)
 
 
-OWN_TITLE = {"asset_dashboard", "asset_schematic"}  # these draw their own TV-scale title and counts
+OWN_TITLE: set[str] = set()  # every page now uses the shared page head
 
 
-PTW_SOURCES = ("Imported permit records", "Site demo (synthetic)")
+PTW_SOURCES = ("Real permits", "Demo site")
 
 
 @st.cache_data(ttl=600, show_spinner="Reading permit files...")
@@ -1046,12 +1037,15 @@ def ptw_page(page: navigation.Page) -> None:
     folder = sources.data_dir()
     default = PTW_SOURCES[0] if folder else PTW_SOURCES[1]
     choice = st.session_state.get("ptw_source") or default
-    badge = (brand.source_badge("imported").replace("Imported file", "Imported permit records · not live")
+    badge = (brand.source_badge("imported").replace("Imported file", "Imported · not live")
              if choice == PTW_SOURCES[0] else None)
-    page_header(page, badge=badge)
-    choice = st.segmented_control("Permit source", PTW_SOURCES, default=default, key="ptw_source") or default
+    sub = ""
+    if folder is not None and choice == PTW_SOURCES[0]:
+        modified = real_permits(str(folder))[0]["modified"]
+        sub = f"Permit-to-work forms · files updated {modified:%d %b %Y}" if modified else "Permit-to-work forms"
+    page_header(page, badge=badge, sub=sub)
+    choice = st.segmented_control("Source", PTW_SOURCES, default=default, key="ptw_source", label_visibility="collapsed") or default
     if choice == PTW_SOURCES[1]:
-        st.caption("Synthetic permits on the site demo map, with their affected assets, isolations and downstream impact.")
         db, module = site_db(), site_module(page.module)
         if db is None or module is None:
             st.info("The site database could not be loaded.")
@@ -1072,7 +1066,8 @@ def _real_registers(folder: str, stamp: tuple) -> dict:
     from demo.sources import registers
 
     root = _Path(folder)
-    return {"assets": registers.load_assets(root), "faults": registers.load_faults(root), "events": registers.load_events(root)}
+    return {"assets": registers.load_assets(root), "faults": registers.load_faults(root), "events": registers.load_events(root),
+            "schedules": registers.load_schedules(root)}
 
 
 def real_registers(folder: str) -> dict:
@@ -1081,7 +1076,7 @@ def real_registers(folder: str) -> dict:
 
     from demo.sources import registers
 
-    files = [_Path(folder) / name for name in (registers.ASSET_FILE, registers.FAULT_FILE, registers.EVENT_FILE)]
+    files = [_Path(folder) / name for name in (registers.ASSET_FILE, registers.FAULT_FILE, registers.EVENT_FILE, registers.SCHEDULE_FILE)]
     return _real_registers(folder, tuple((path.name, path.stat().st_mtime) for path in files if path.is_file()))
 
 
@@ -1095,15 +1090,18 @@ def not_configured(what: str) -> None:
 def fault_log_page() -> None:
     from demo import real_pages, sources
 
-    page_header(navigation.PAGE["fault-log"], badge=brand.source_badge("imported").replace("Imported file", "Imported iSMM export · not live"))
     folder = sources.data_dir()
-    if folder is None:
+    data = real_registers(str(folder))["faults"] if folder is not None else None
+    sub = (f"iSMM fault export · {data['exported_from']:%d %b %Y} to {data['exported_to']:%d %b %Y}"
+           if data and data.get("exported_to") else "")
+    page_header(navigation.PAGE["fault-log"], sub=sub)
+    if data is None:
         not_configured("Fault records")
         return
-    real_pages.fault_log(real_registers(str(folder))["faults"])
+    real_pages.fault_log(data)
 
 
-CALENDAR_SOURCES = ("Imported event orders", "Site demo (synthetic)")
+CALENDAR_SOURCES = ("Real event orders", "Demo site")
 
 
 def calendar_page(page: navigation.Page) -> None:
@@ -1116,12 +1114,10 @@ def calendar_page(page: navigation.Page) -> None:
     folder = sources.data_dir()
     default = CALENDAR_SOURCES[0] if folder else CALENDAR_SOURCES[1]
     choice = st.session_state.get("calendar_source") or default
-    badge = (brand.source_badge("imported").replace("Imported file", "Imported event workbook · not live")
-             if choice == CALENDAR_SOURCES[0] else None)
-    page_header(page, badge=badge)
-    choice = st.segmented_control("Calendar source", CALENDAR_SOURCES, default=default, key="calendar_source") or default
+    badge = brand.source_badge("imported").replace("Imported file", "Imported · not live") if choice == CALENDAR_SOURCES[0] else None
+    page_header(page, badge=badge, sub="Event order workbook" if choice == CALENDAR_SOURCES[0] and folder else "")
+    choice = st.segmented_control("Source", CALENDAR_SOURCES, default=default, key="calendar_source", label_visibility="collapsed") or default
     if choice == CALENDAR_SOURCES[1]:
-        st.caption("Synthetic permits, event orders and maintenance on the site demo, with permit and event clashes marked.")
         db, module = site_db(), site_module(page.module)
         if db is None or module is None:
             st.info("The site database could not be loaded.")
@@ -1131,7 +1127,6 @@ def calendar_page(page: navigation.Page) -> None:
     if folder is None:
         not_configured("Event orders")
         return
-    st.caption("Event orders only: the event workbook has no permits or maintenance, so clashes are not computed for imported data.")
     real_pages.event_orders(real_registers(str(folder))["events"], _datetime.now(_SGT).date())
 
 
@@ -1152,37 +1147,41 @@ def site_page(page: navigation.Page) -> None:
 
 
 def overview_page() -> None:
-    """Landing page: what needs attention, then one panel per kind of fact, each linking to the page that owns it."""
-    from demo import site_overview
+    """Landing page: six figures and a few short lists, real files first (demo/overview_v2.py)."""
+    from datetime import datetime as _datetime
 
-    page_header(navigation.PAGE["overview"])
+    from demo import overview_v2, site_overview, sources
+    from demo.sources.ptw_forms import SGT as _SGT
+
     db = site_db()
     if db is None:
         st.info("The site database could not be loaded.")
         return
     if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
         replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
-    st.markdown(site_overview.page_html(site_overview.summary(db, st.session_state["replay"])), unsafe_allow_html=True)
-    with st.expander("Where to find what", expanded=False):
-        areas = []
-        for area in navigation.AREAS[1:]:
-            items = "".join(f'<li><a href="?view={page.key}" target="_self">{esc(page.label)}</a> · {esc(page.summary)}'
-                            f'<span>{esc(page.status)}</span></li>'
-                            for page in [*navigation.area_pages(area), *navigation.area_pages(area, secondary=True)])
-            areas.append(f'<div><h3>{esc(area)}</h3><ul>{items}</ul></div>')
-        st.markdown(f'<div class="ioc-dir">{"".join(areas)}</div>', unsafe_allow_html=True)
+    now = _datetime.now(_SGT)
+    folder = sources.data_dir()
+    real = None
+    if folder is not None:
+        real = overview_v2.real_context(str(folder), real_registers(str(folder)), real_permits(str(folder)), now)
+    tags = [] if real else [brand.demo_badge("Demo data")]
+    from demo import ui
+
+    st.markdown(ui.head("Site overview", f"{now:%A %d %B %Y} · {now:%H:%M} SGT", tags), unsafe_allow_html=True)
+    ctx = {"summary": site_overview.summary(db, st.session_state["replay"]), "today": now.date(), "now": now, "real": real}
+    st.markdown(overview_v2.page_html(ctx), unsafe_allow_html=True)
 
 
 ASSET_CSS = """
 .ao-cats {display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.6rem;margin:.2rem 0 1rem}
-.ao-cat {border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.55rem .75rem}
-.ao-cat b {display:block;font-size:1.55rem;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums}
-.ao-cat span {display:block;font-size:.84rem;font-weight:650;color:var(--gbb-ink)}
-.ao-cat small {display:block;font-size:.74rem;color:var(--gbb-ink-3);margin-top:.15rem}
+.ao-cat {background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);box-shadow:var(--gbb-shadow);padding:12px 14px}
+.ao-cat b {display:block;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.ao-cat span {display:block;font-size:13px;font-weight:600;color:var(--gbb-ink)}
+.ao-cat small {display:block;font-size:12px;color:var(--gbb-ink-3);margin-top:.15rem}
 .ao-cat small em {font-style:normal;font-weight:700;color:var(--gbb-ink)}
 .ao-detail {display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.7rem 1.2rem;margin:.3rem 0 .7rem}
-.ao-detail div small {display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
-.ao-detail div span {font-size:.95rem}
+.ao-detail div small {display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
+.ao-detail div span {font-size:13px}
 """
 
 
@@ -1204,7 +1203,7 @@ def asset_overview_page() -> None:
     """Consolidated asset list: both sources, shared categories, separate status columns, links to the specialist pages."""
     from demo import asset_catalogue as ac
 
-    page_header(navigation.PAGE["assets"])
+    page_header(navigation.PAGE["assets"], sub="Every asset by category")
     st.markdown(f"<style>{ASSET_CSS}</style>", unsafe_allow_html=True)
     db = site_db()
     if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
@@ -1217,25 +1216,20 @@ def asset_overview_page() -> None:
     if folder is not None:
         real = real_registers(str(folder))
         rows += ac.register_rows(real["assets"]["assets"], {fault["number"] for fault in real["faults"]["faults"]})
-    counts = ac.category_counts(rows)
-    st.markdown('<div class="ao-cats">' + "".join(
-        f'<div class="ao-cat"><b>{item["total"]}</b><span>{esc(item["category"])}</span>'
-        f'<small>{item["site"]} site · {item["replay"]} replay' + (f' · {item["register"]} register' if item["register"] else "")
-        + (f' · <em>{item["attention"]} need attention</em>' if item["attention"] else "") + "</small></div>" for item in counts)
-        + "</div>", unsafe_allow_html=True)
+    counts = {item["category"]: item for item in ac.category_counts(rows)}
     a, b, c = st.columns([3, 1.4, 1.2])
     with a:
-        chosen = st.pills("Category", [item["category"] for item in counts], selection_mode="multi", key="ao_categories")
+        chosen = st.pills("Category", list(counts), selection_mode="multi", key="ao_categories",
+                          format_func=lambda name: f"{name}  {counts[name]['total']}")
     with b:
         sources_chosen = st.pills("Source", [s for s in (ac.SITE, ac.REPLAY, ac.REGISTER) if any(r["source"] == s for r in rows)],
                                   selection_mode="multi", key="ao_sources")
     with c:
         attention = st.toggle("Needs attention only", key="ao_attention",
                               help="A Down, Warning or Offline operational state, or a detector finding: each in its own terms.")
-    text = st.text_input("Search asset ID, name or location", key="ao_text")
+    text = st.text_input("Search", key="ao_text", placeholder="Asset ID, name or location")
     shown = ac.select(rows, chosen, sources_chosen, attention, text)
-    st.caption(f"{len(shown)} of {len(rows)} assets. Site assets and replay assets are different demonstration datasets; "
-               "a cell a source does not report says so rather than borrowing a value.")
+    st.caption(f"{len(shown)} of {len(rows)} assets")
     if not shown:
         st.info("No assets match these filters.")
         return
@@ -1352,7 +1346,7 @@ def displays_page() -> None:
 
     from demo import displays
 
-    page_header(navigation.PAGE["displays"])
+    page_header(navigation.PAGE["displays"], sub="Choose what each 55-inch screen shows")
     params = st.query_params
     for i in range(4):
         key = f"ds_s{i + 1}"
@@ -1365,8 +1359,6 @@ def displays_page() -> None:
     if "ds_res" not in st.session_state:
         st.session_state["ds_res"] = params.get("res") if params.get("res") in names else names[0]
 
-    st.markdown("Assign a display to each 55-inch screen. Each screen gets its own bookmarkable address; the wall address shows all "
-                "four as one 2×2 picture. Displays are simplified versions of the operator pages, sized for reading at a distance.")
     cols = st.columns(4)
     for i, col in enumerate(cols):
         with col:
@@ -1461,8 +1453,9 @@ def nav_button(page: navigation.Page, current: navigation.Page) -> None:
 
 
 def sidebar_nav(current: navigation.Page) -> None:
-    st.markdown('<div class="ioc-brand"><i></i><div><b>Gardens by the Bay</b><small>Facilities IOC</small></div></div>',
-                unsafe_allow_html=True)
+    from demo import ui
+
+    st.markdown(f'<div class="ioc-logo">{ui.logo(46)}<small>FACILITIES OPERATIONS CENTRE</small></div>', unsafe_allow_html=True)
     with st.container(key="ioc-nav"):
         for area in navigation.AREAS:
             st.markdown(f'<div class="ioc-area">{esc(area)}</div>', unsafe_allow_html=True)

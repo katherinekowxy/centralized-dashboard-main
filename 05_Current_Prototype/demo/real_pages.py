@@ -20,15 +20,16 @@ ISSUE_WORD = {"blank_value": "Blank required value", "invalid_value": "Value cou
               "tidied_value": "Value tidied", "check_value": "Please check", "coverage_gap": "Gap in the export"}
 CSS = """
 .rx-figs {display:flex;flex-wrap:wrap;gap:.4rem 2rem;margin:.2rem 0 1rem}
-.rx-fig b {display:block;font-size:1.8rem;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums}
-.rx-fig span {font-size:.86rem;color:var(--gbb-ink-2)}
-.rx-note {font-size:.82rem;color:var(--gbb-ink-2);margin:.2rem 0 .8rem;line-height:1.45}
-.rx-day {font-size:.95rem;font-weight:750;margin:.9rem 0 .3rem;padding-bottom:.25rem;border-bottom:2px solid var(--gbb-ink)}
-.rx-ev {display:grid;grid-template-columns:9rem minmax(0,1fr) auto;gap:.2rem 1rem;padding:.45rem 0;border-bottom:1px solid var(--gbb-line);font-size:.9rem}
-.rx-ev b {font-weight:650}
-.rx-ev small {display:block;color:var(--gbb-ink-3);font-size:.78rem}
-.rx-tags {display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
-.rx-tag {font-size:.72rem;font-weight:700;padding:.05rem .45rem;border:1.5px solid var(--gbb-ink-2);border-radius:.3rem;white-space:nowrap}
+.rx-fig b {display:block;font-size:18px;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums}
+.rx-fig span {font-size:13px;color:var(--gbb-ink-2)}
+.rx-note {font-size:12px;color:var(--gbb-ink-2);margin:.2rem 0 .8rem;line-height:1.45}
+.rx-day {font-size:13px;font-weight:700;color:var(--gbb-ink-2);margin:16px 0 6px}
+.rx-ev {display:grid;grid-template-columns:7rem minmax(0,1fr) auto;gap:2px 14px;padding:10px 14px;background:var(--gbb-surface);
+  border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);margin:0 0 6px;font-size:14px}
+.rx-ev b {font-weight:600}
+.rx-ev small {display:block;color:var(--gbb-ink-3);font-size:12px}
+.rx-tags {display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.rx-tag {font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--gbb-surface-3);color:var(--gbb-ink-2);white-space:nowrap}
 """
 
 
@@ -62,10 +63,9 @@ def fault_log(data: dict) -> None:
         st.info("The fault log could not be read. See the validation report below.")
         _issues(st, data["issues"], "faults")
         return
+    from demo import ui
+
     end, start = data["exported_to"], data["exported_from"]
-    st.markdown(f'<div class="rx-note">iSMM fault export: {len(faults):,} faults reported {start:%d %b %Y} to {end:%d %b %Y}. '
-                f"States are as at the end of the export ({end:%d %b %Y}), not today. File last modified {data['modified']:%d %b %Y %H:%M} SGT. "
-                "Personal details (who reported or attended) are not read.</div>", unsafe_allow_html=True)
     frame = pd.DataFrame(faults)
     a, b, c, d = st.columns([1.2, 1.4, 1.4, 1.4])
     with a:
@@ -81,14 +81,14 @@ def fault_log(data: dict) -> None:
         if chosen:
             view = view[view[column].isin(chosen)]
     last30 = view[view["reported"].notna() & (view["reported"] > end - timedelta(days=30))]
-    figs = [(int((view["state"] == "open").sum()), "open at export"), (int((view["state"] == "in_progress").sum()), "in progress at export"),
-            (len(last30), "reported in the export's last 30 days"), (len(view), "faults in this selection")]
-    st.markdown('<div class="rx-figs">' + "".join(f'<div class="rx-fig"><b>{n:,}</b><span>{esc(w)}</span></div>' for n, w in figs) + "</div>",
-                unsafe_allow_html=True)
+    st.markdown(ui.kpis([{"label": "Open", "value": f'{int((view["state"] == "open").sum()):,}', "caption": f"As at {end:%d %b %Y}"},
+                         {"label": "In progress", "value": f'{int((view["state"] == "in_progress").sum()):,}', "caption": f"As at {end:%d %b %Y}"},
+                         {"label": "Reported, last 30 days", "value": f"{len(last30):,}", "caption": "Of the export"},
+                         {"label": "All faults", "value": f"{len(view):,}", "caption": f"{start:%b %Y} to {end:%b %Y}"}]), unsafe_allow_html=True)
 
     left, right = st.columns([1.6, 1], gap="medium")
     with left:
-        st.markdown('<div class="sd-section">Reported and completed per week</div>', unsafe_allow_html=True)
+        st.markdown('<div class="u-sec">Reported and completed per week</div>', unsafe_allow_html=True)
         weeks = pd.period_range(start.replace(tzinfo=None), end.replace(tzinfo=None), freq="W").start_time
         weekly = pd.DataFrame({"reported": view["reported"].dropna().dt.tz_localize(None).dt.to_period("W").dt.start_time.value_counts(),
                                "completed": view["completed"].dropna().dt.tz_localize(None).dt.to_period("W").dt.start_time.value_counts()}
@@ -106,10 +106,10 @@ def fault_log(data: dict) -> None:
         fig.update_yaxes(rangemode="tozero", title="Faults")
         st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
         gap_text = "; ".join(f"{a:%d %b %Y} to {b:%d %b %Y}" for a, b in data.get("gaps", []))
-        st.caption("Whole export, by week. Completion counts the week work was completed, whenever the fault was reported."
-                   + (f" No faults at all were recorded {gap_text}: the export appears to be missing that period, so it is shaded, not drawn as zero." if gap_text else ""))
+        if gap_text:
+            st.caption(f"Shaded: no records {gap_text} (missing from the export).")
     with right:
-        st.markdown('<div class="sd-section">Open or in progress, by building</div>', unsafe_allow_html=True)
+        st.markdown('<div class="u-sec">Open by building</div>', unsafe_allow_html=True)
         open_now = view[view["state"].isin(["open", "in_progress"])]
         ranked = open_now["building"].value_counts().head(10).sort_values()
         if ranked.empty:
@@ -120,7 +120,6 @@ def fault_log(data: dict) -> None:
             fig.update_layout(**brand.plotly_layout(height=300, margin={"l": 10, "r": 10, "t": 10, "b": 30}))
             fig.update_xaxes(rangemode="tozero", dtick=max(1, int(ranked.max() // 5)))
             st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
-            st.caption("Counts of faults, not a severity ranking.")
 
     tab_open, tab_impact, tab_report = st.tabs([f"Open at export ({len(open_now):,})", "Impact as recorded", "Validation report"])
     with tab_open:
@@ -134,10 +133,9 @@ def fault_log(data: dict) -> None:
                 "number": "Fault", "building": "Building", "room": "Room", "trade": "Trade", "type": "Type of fault", "impact": "Impact (as recorded)",
                 "remarks": "Remarks"}), hide_index=True, width="stretch", height=360)
     with tab_impact:
-        st.caption("The Impact field mixes urgency (Urgent, Critical) with extent (Localised to room, Whole Building). It is listed as recorded and is not a severity scale.")
+        st.caption("As recorded in iSMM. Mixes urgency and extent, so it is not a severity scale.")
         st.dataframe(view["impact"].value_counts().rename_axis("Impact (as recorded)").reset_index(name="Faults"), hide_index=True)
     with tab_report:
-        st.caption("Rows with problems are kept and listed; none is dropped silently.")
         _issues(st, data["issues"], "faults")
 
 
@@ -165,10 +163,9 @@ def event_orders(data: dict, today: date) -> None:
     from demo.sources.registers import events_on
 
     st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
+    from demo import ui
+
     events = data["events"]
-    st.markdown(f'<div class="rx-note">{len(events)} event orders from the monthly sheets of the event workbook, repeats counted once. '
-                f"File last modified {data['modified']:%d %b %Y %H:%M} SGT. Names of staff in charge and document links are not read. "
-                "Times are as written on the sheet.</div>", unsafe_allow_html=True)
     a, b = st.columns([2, 1])
     with a:
         choice = st.segmented_control("Period", WINDOWS, default="This week", key="ev_window") or "This week"
@@ -178,10 +175,10 @@ def event_orders(data: dict, today: date) -> None:
     shown = [e for e in events_on(events, first, last) if not power_only or e["power"] or e["power_on"]]
     long_running = [e for e in shown if e["days"] is None and (e["last_day"] - e["first_day"]).days > 13]
     dated = [e for e in shown if e not in long_running]
-    figs = [(len(shown), "event orders in this period"), (sum(e["power"] for e in shown), "need power"),
-            (sum(e["power_on"] for e in shown), "need power turned on"), (sum(e["kitchen"] for e in shown), "kitchen handover")]
-    st.markdown('<div class="rx-figs">' + "".join(f'<div class="rx-fig"><b>{n}</b><span>{esc(w)}</span></div>' for n, w in figs) + "</div>",
-                unsafe_allow_html=True)
+    st.markdown(ui.kpis([{"label": "Event orders", "value": len(shown), "caption": choice},
+                         {"label": "Need power", "value": sum(e["power"] for e in shown), "caption": "Power requirement"},
+                         {"label": "Power to turn on", "value": sum(e["power_on"] for e in shown), "caption": "Power turn on"},
+                         {"label": "Kitchen handover", "value": sum(e["kitchen"] for e in shown), "caption": "Kitchen HOTO"}]), unsafe_allow_html=True)
 
     def line(event: dict) -> str:
         tags = [label for flag, label in ((event["power"], "Power"), (event["power_on"], "Power on"), (event["av"], "AV"),
@@ -206,7 +203,6 @@ def event_orders(data: dict, today: date) -> None:
         st.caption("No dated event orders in this period.")
     if long_running:
         with st.expander(f"Running throughout this period ({len(long_running)})", expanded=False):
-            st.caption("Written on the sheet as a long date range (for example a season of weekly bookings) without saying which days inside it are used.")
             st.markdown("".join(line(e) for e in long_running), unsafe_allow_html=True)
     with st.expander("Validation report", expanded=False):
         _issues(st, data["issues"], "events")

@@ -45,7 +45,7 @@ def test_a_view_url_opens_that_page_and_buttons_update_the_url(monkeypatch) -> N
     at.button(key="nav-diagnostics").click().run()
     assert not at.exception
     assert at.query_params["view"] == ["diagnostics"] and at.session_state["nav"] == "diagnostics"
-    assert "Diagnostics replay · demo / synthetic scenario" in "\n".join(item.value for item in at.markdown)
+    assert "Demo scenario" in "\n".join(item.value for item in at.markdown)
 
 
 def test_site_dashboard_and_new_tab_detail_read_the_site_database(monkeypatch) -> None:
@@ -54,7 +54,7 @@ def test_site_dashboard_and_new_tab_detail_read_the_site_database(monkeypatch) -
     at.button(key="nav-asset-status").click().run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Down</small><b>2</b>" in markup and "Operational asset state" in markup
+    assert "Down</small><b>2</b>" in markup and "Operational asset state" in markup  # the status key, in the tag's tooltip
     detail = AppTest.from_file(str(APP), default_timeout=60)
     detail.query_params["asset"] = "FDM-CHL-01"
     detail.run()

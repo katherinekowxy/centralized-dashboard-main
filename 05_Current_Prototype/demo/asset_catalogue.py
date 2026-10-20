@@ -27,7 +27,7 @@ REPLAY_TYPE = {"chiller": "Chillers", "ahu": "Air handling units", "distribution
 SITE, REPLAY, REGISTER = "Site operations", "Diagnostics replay", "Imported asset register"
 REGISTER_TYPE = {"hvls": "Fans", "chiller": "Chillers", "ahu": "Air handling units", "db": "Distribution boards", "pump": "Pumps"}
 SITE_POINTS = "Voltage, current, power, power factor, energy"
-NOT_REPORTED = {SITE: "No detector on site data", REPLAY: "Not reported by the replay", REGISTER: "Not in the register (no readings)"}
+NOT_REPORTED = {SITE: "No detector", REPLAY: "Not reported", REGISTER: "No readings"}  # short: they repeat on every row
 FINDING_WORD = {"alert": "Detector finding", "ok": "Checked, no finding", "idle": "Not assessed"}
 
 

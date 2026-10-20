@@ -33,51 +33,47 @@ CONE = ('<svg class="tv-cone" viewBox="0 0 24 24" aria-hidden="true"><circle cx=
         '<rect x="5" y="17.2" width="14" height="2.2" rx=".8" fill="#334155"/></svg>')
 
 CSS = f"""
-html {{font-size:20px}}  /* a 55-inch TV seen from 2-3 m: nothing on these pages is smaller than 20 px */
-.stApp, [data-testid="stHeader"], [data-testid="stMain"] {{background:#FFFFFF !important}}
-.sd-head {{display:none}}  /* the page draws a report-style header instead */
-.block-container {{padding-top:1.4rem !important}}
+.sd-head {{display:none}}
 .tv {{color:{INK};font-family:var(--gbb-font)}}
-.tv-top {{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.8rem 2rem;margin:0 0 .5rem}}
-.tv-brand {{font-size:1rem;font-weight:700;color:{brand.PINK_DARK};letter-spacing:.02em}}
-.tv-title {{font-size:2.4rem;font-weight:800;line-height:1.05;color:{INK};padding-bottom:.25rem;border-bottom:3px solid {LINE}}}
-.tv-updated {{font-size:1rem;color:{INK_2};margin-top:.35rem}}
-.tv-meta {{font-size:1rem;color:{INK_2};margin:0 0 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.3rem 1.3rem}}
-.tv-meta span {{display:inline-flex;align-items:center;gap:.35rem}}
-.tv-key {{display:inline-block;width:1.1rem;height:.75rem;background:var(--b)}}
-.tv-cards {{display:flex;flex-wrap:wrap;gap:.6rem;margin-left:auto}}
-.tv-card {{min-width:6.8rem;padding:.4rem .9rem .45rem;background:{PLUM};color:#fff}}
-.tv-card small {{display:flex;align-items:center;gap:.4rem;font-size:1rem;color:{LILAC};white-space:nowrap}}
-.tv-card small i {{display:inline-block;width:.75rem;height:.75rem;border-radius:50%;background:var(--m)}}
-.tv-card b {{display:block;font-size:2.2rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}}
-.tv-zones {{column-width:var(--col,15rem);column-gap:1.4rem}}
-.tv-zone {{display:inline-block;width:100%;break-inside:avoid;margin:0 0 1.2rem}}
-.tv-zh {{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.35rem .7rem;background:{PLUM};color:#fff;
-  font-size:1.2rem;font-weight:700;line-height:1.25}}
-.tv-zh em {{flex:none;font-style:normal;font-size:1rem;font-weight:700;color:{LILAC}}}
-.tv-row {{position:relative;display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:2.1rem;padding:.2rem .7rem;
-  border-bottom:1px solid {LINE};font-size:1.15rem;line-height:1.2;color:{INK} !important;text-decoration:none !important}}
-.tv-list > .tv-row:nth-of-type(even) {{background:{ZEBRA}}}
-.tv-row:hover {{background:{LILAC} !important}}
-.tv-name {{min-width:0;word-break:normal;overflow-wrap:normal}}
-.tv-end {{display:inline-flex;align-items:center;gap:.4rem;flex:none}}
-.tv-dot {{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:var(--d)}}
-.tv-ban {{background:var(--b) !important;color:var(--t) !important;font-weight:700;border-bottom-color:#fff}}
-.tv-ban .tv-name b {{margin-right:.5rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase}}
-.tv-ban .tv-name small {{display:block;font-size:1.05rem;font-weight:600;opacity:.95}}
-.tv-ban.tv-nosupply {{background:#FFFFFF !important;color:#B91C1C !important;box-shadow:inset .45rem 0 0 #DC2626;padding-left:1.05rem}}
-.tv-parent {{font-size:1.25rem;font-weight:700}}
-.tv-nc {{font-size:1rem;font-weight:600;color:{INK_2}}}
-.tv-feeds {{margin:0 0 0 1rem;padding:0 0 0 .55rem;border-left:3px solid {brand.LINE_STRONG}}}
-.tv-feeds.tv-dead {{border-left:3px dashed #DC2626}}
-.tv-branch + .tv-branch, .tv-branch + .tv-row, .tv-row + .tv-branch {{margin-top:.5rem}}
-.tv-cone {{width:1.5rem;height:1.5rem;flex:none;animation:tv-pulse 1.8s ease-in-out infinite}}
-@keyframes tv-pulse {{0%,100% {{transform:scale(1)}} 50% {{transform:scale(1.14)}}}}
-.tv-note {{display:inline-flex;align-items:center;gap:.5rem;font-size:1.15rem;font-weight:600;color:{INK};margin:.3rem 0 0}}
-.tv-clear {{padding:2.5rem 1rem;text-align:center;font-size:2.4rem;font-weight:800;color:{INK}}}
-.tv-clear small {{display:block;margin-top:.6rem;font-size:1.1rem;font-weight:600;color:{INK_2}}}
-@media (prefers-reduced-motion: reduce) {{.tv-cone {{animation:none}}}}
-@media (max-width: 640px) {{.tv-zones {{columns:1}} .tv-cards {{margin-left:0}}}}
+.tv-top {{margin:0 0 12px}}
+.tv-brand {{font-size:13px;font-weight:700;color:{brand.PINK_DARK};letter-spacing:.02em}}
+.tv-title {{font-size:var(--t-title);font-weight:700;line-height:1.15;color:{INK}}}
+.tv-updated {{font-size:var(--t-caption);color:var(--gbb-ink-3);margin:2px 0 10px}}
+.tv-meta {{font-size:var(--t-small);color:{INK_2};margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}}
+.tv-meta span {{display:inline-flex;align-items:center;gap:6px}}
+.tv-key {{display:inline-block;width:14px;height:10px;border-radius:2px;background:var(--b)}}
+.tv-cards {{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}}
+.tv-card {{background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);box-shadow:var(--gbb-shadow);padding:12px 14px}}
+.tv-card small {{display:flex;align-items:center;gap:6px;font-size:var(--t-small);font-weight:600;color:var(--gbb-ink-2);white-space:nowrap}}
+.tv-card small i {{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--m)}}
+.tv-card b {{display:block;font-size:var(--t-figure);font-weight:700;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}}
+.tv-zones {{column-width:var(--col,17rem);column-gap:14px}}
+.tv-zone {{display:inline-block;width:100%;break-inside:avoid;margin:0 0 14px;background:var(--gbb-surface);border:1px solid var(--gbb-line);
+  border-radius:var(--gbb-radius);box-shadow:var(--gbb-shadow);overflow:hidden}}
+.tv-zh {{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--gbb-surface-2);color:{INK};
+  font-size:var(--t-body);font-weight:700;border-bottom:1px solid var(--gbb-line)}}
+.tv-zh em {{flex:none;font-style:normal;font-size:var(--t-caption);font-weight:700;color:var(--gbb-ink-3)}}
+.tv-row {{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px;padding:6px 12px;
+  border-top:1px solid {LINE};font-size:var(--t-body);line-height:1.3;color:{INK} !important;text-decoration:none !important}}
+.tv-list > .tv-row:first-child {{border-top:none}}
+.tv-row:hover {{background:var(--gbb-surface-2) !important}}
+.tv-name {{min-width:0}}
+.tv-end {{display:inline-flex;align-items:center;gap:6px;flex:none}}
+.tv-dot {{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--d)}}
+.tv-ban {{background:var(--b) !important;color:var(--t) !important;font-weight:600;border-top-color:transparent}}
+.tv-ban .tv-name b {{margin-right:6px;font-size:var(--t-caption);font-weight:800;letter-spacing:.04em;text-transform:uppercase}}
+.tv-ban .tv-name small {{display:block;font-size:var(--t-caption);font-weight:500;opacity:.95}}
+.tv-ban.tv-nosupply {{background:#FFFFFF !important;color:#B91C1C !important;box-shadow:inset 4px 0 0 #DC2626;padding-left:16px}}
+.tv-parent {{font-weight:700}}
+.tv-nc {{font-size:var(--t-caption);font-weight:600;color:var(--gbb-ink-3)}}
+.tv-feeds {{margin:0 0 0 12px;padding:0 0 0 8px;border-left:2px solid {brand.LINE_STRONG}}}
+.tv-feeds.tv-dead {{border-left:2px dashed #DC2626}}
+.tv-branch + .tv-branch, .tv-branch + .tv-row, .tv-row + .tv-branch {{margin-top:6px}}
+.tv-cone {{width:20px;height:20px;flex:none}}
+.tv-note {{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-small);color:var(--gbb-ink-2);margin:4px 0 0}}
+.tv-clear {{padding:28px 12px;text-align:center;font-size:var(--t-subhead);font-weight:700;color:{INK}}}
+.tv-clear small {{display:block;margin-top:6px;font-size:var(--t-small);font-weight:500;color:var(--gbb-ink-3)}}
+@media (max-width: 640px) {{.tv-zones {{columns:1}}}}
 """
 
 
@@ -104,8 +100,8 @@ def header_html(title: str, updated: str, cards: str, key: str = "", brand_line:
     """Title and data time on the left and count cards on the right, as in GBTB's reports; the key on a line below.
     ``brand_line`` adds the site name above the title, for screens that show no navigation (wall displays)."""
     brand_html = '<div class="tv-brand">Gardens by the Bay · Facilities IOC</div>' if brand_line else ""
-    return (f'<div class="tv-top"><div>{brand_html}<div class="tv-title">{esc(title)}</div>'
-            f'<div class="tv-updated">Data updated {esc(updated)} SGT · demo / synthetic data</div></div>{cards}</div>'
+    return (f'<div class="tv-top"><div>{brand_html}{f"<div class=tv-title>{esc(title)}</div>" if title else ""}'
+            f'<div class="tv-updated">Updated {esc(updated)} SGT · demo data</div></div>{cards}</div>'
             + (f'<div class="tv-meta">{key}</div>' if key else ""))
 
 

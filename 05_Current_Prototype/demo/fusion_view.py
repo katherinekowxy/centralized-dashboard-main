@@ -20,7 +20,7 @@ def evidence_html(platform: dict[str, Any], flow: dict[str, Any]) -> str:
     links = [{"url": sources[item].get("url", ""), "label": sources[item].get("title") or item}
              for item in evidence.get("source_ids", []) if item in sources]
     return (
-        '<div class="sd-section" style="font-size:.95rem">Diagnostic fusion on this path</div>'
+        '<div class="sd-section" style="font-size:13px">Diagnostic fusion on this path</div>'
         '<div class="sd-fusion">'
         + map_view.node_html({"title": title, "status": status,
                               "text": ("Inputs: " + " · ".join(inputs) + ". " if inputs else "") + assessment,

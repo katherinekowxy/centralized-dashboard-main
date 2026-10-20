@@ -27,25 +27,25 @@ CSS = """
 .ep-boxes {display:grid;grid-template-columns:repeat(auto-fill,minmax(31rem,1fr));gap:.9rem;align-items:start}
 .ep-panel {position:relative;border:2px solid var(--gbb-line-strong);border-radius:1.1rem;background:var(--gbb-surface);padding:.55rem .75rem .75rem}
 .ep-top {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.3rem .8rem;margin:0 0 .45rem}
-.ep-zone {font-size:1.35rem;font-weight:800;color:var(--gbb-ink)}
+.ep-zone {font-size:16px;font-weight:800;color:var(--gbb-ink)}
 .ep-event {display:inline-flex;align-items:center;gap:.4rem;padding:.2rem .65rem;border:2px solid var(--gbb-ink);border-radius:.6rem;
-  font-size:1rem;font-weight:750;color:var(--gbb-ink) !important;text-decoration:none !important;background:var(--gbb-surface-2)}
+  font-size:14px;font-weight:750;color:var(--gbb-ink) !important;text-decoration:none !important;background:var(--gbb-surface-2)}
 .ep-event svg {width:1.05rem;height:1.05rem;flex:none}
 .ep-event.ep-none {border-style:dashed;border-color:var(--gbb-line-strong);background:none;color:var(--gbb-ink-3) !important}
 .ep-event.ep-clash {background:var(--gbb-ink);color:#fff !important}
 .ep-feeder {display:inline-flex;align-items:center;gap:.6rem;padding:.2rem .7rem;border:2px solid var(--gbb-line-strong);border-radius:.6rem;
-  font-size:1rem;font-weight:750;color:var(--gbb-ink-2)}
-.ep-feeder small {font-size:.88rem;font-weight:700;color:var(--gbb-ink-3)}
+  font-size:14px;font-weight:750;color:var(--gbb-ink-2)}
+.ep-feeder small {font-size:13px;font-weight:700;color:var(--gbb-ink-3)}
 .ep-feeder.ep-nc {border-style:dashed}
 .ep-feeder.ep-dead {border-color:#B91C1C;background:#B91C1C;color:#fff}
 .ep-head {position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .9rem;margin-top:.8rem;padding:.4rem .75rem;
   border-radius:12px;border:3px solid color-mix(in srgb, var(--c) 85%, transparent);background:color-mix(in srgb, var(--c) 13%, var(--gbb-surface));
   color:var(--gbb-ink) !important;text-decoration:none !important}
 .ep-head::before {content:"";position:absolute;left:1.6rem;top:calc(-.8rem - 3px);height:.8rem;border-left:3px var(--ls) var(--line)}
-.ep-name {font-size:1.2rem;font-weight:800;color:var(--gbb-ink)}
-.ep-word {display:inline-flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:800;color:var(--gbb-ink);white-space:nowrap}
-.ep-load {display:flex;align-items:center;gap:.6rem;flex:1;min-width:11rem;font-size:1rem;color:var(--gbb-ink-2);white-space:nowrap}
-.ep-load b {font-size:1.35rem;color:var(--gbb-ink);font-variant-numeric:tabular-nums}
+.ep-name {font-size:16px;font-weight:800;color:var(--gbb-ink)}
+.ep-word {display:inline-flex;align-items:center;gap:.4rem;font-size:14px;font-weight:800;color:var(--gbb-ink);white-space:nowrap}
+.ep-load {display:flex;align-items:center;gap:.6rem;flex:1;min-width:11rem;font-size:14px;color:var(--gbb-ink-2);white-space:nowrap}
+.ep-load b {font-size:16px;color:var(--gbb-ink);font-variant-numeric:tabular-nums}
 .ep-bar {flex:1;height:.55rem;border-radius:99px;background:var(--gbb-surface-3);overflow:hidden}
 .ep-bar i {display:block;height:100%;border-radius:99px;background:var(--c)}
 .ep-sockets {position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.5rem;margin-top:1.7rem}
@@ -58,13 +58,13 @@ CSS = """
   color:var(--gbb-ink) !important;text-decoration:none !important}
 .ep-sock::before {content:"";position:absolute;left:50%;top:calc(-.85rem - 2px);height:.85rem;border-left:3px var(--ls) var(--line)}
 .ep-sock:hover, .ep-head:hover {filter:brightness(1.15)}
-.ep-sid {display:flex;align-items:baseline;justify-content:space-between;gap:.3rem;font-size:1.05rem;font-weight:800;color:var(--gbb-ink)}
-.ep-sid small {font-size:.82rem;font-weight:700;color:var(--gbb-ink-3);white-space:nowrap}
-.ep-amps {font-size:2rem;font-weight:800;line-height:1.05;color:var(--gbb-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
-.ep-amps small {font-size:.95rem;font-weight:700;color:var(--gbb-ink-2)}
+.ep-sid {display:flex;align-items:baseline;justify-content:space-between;gap:.3rem;font-size:14px;font-weight:800;color:var(--gbb-ink)}
+.ep-sid small {font-size:12px;font-weight:700;color:var(--gbb-ink-3);white-space:nowrap}
+.ep-amps {font-size:24px;font-weight:800;line-height:1.05;color:var(--gbb-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ep-amps small {font-size:13px;font-weight:700;color:var(--gbb-ink-2)}
 .ep-sock .ep-bar {flex:none;margin:.15rem 0 .1rem}
-.ep-sock .ep-word {margin:0;font-size:.95rem}
-.ep-use {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.92rem;font-weight:700;
+.ep-sock .ep-word {margin:0;font-size:13px}
+.ep-use {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:700;
   color:var(--gbb-ink-2);line-height:1.15;word-break:normal;overflow-wrap:normal}
 .ep-use.ep-later {color:var(--gbb-ink-3);font-weight:650}
 .ep-sock.ep-off {border-style:dashed;border-color:#B91C1C;background:transparent}

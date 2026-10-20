@@ -101,7 +101,7 @@ def render(platforms: list[dict[str, Any]]) -> None:
         names = [flow.get("name") or f"Path {index + 1}" for index, flow in enumerate(flows)]
         chosen = st.radio("Documented path", names, horizontal=True, key=f"exploratory_path_{platform.get('id')}") if len(flows) > 1 else names[0]
         flow = flows[names.index(chosen)]
-        st.markdown(f'<div class="sd-section" style="font-size:.95rem">{map_view.esc(chosen)}</div>'
+        st.markdown(f'<div class="sd-section" style="font-size:13px">{map_view.esc(chosen)}</div>'
                     + map_view.steps_html(flow_steps(flow, sources)), unsafe_allow_html=True)
         if flow.get("caveat"):
             st.markdown(f'<div class="sd-muted">{map_view.esc(flow["caveat"])}</div>', unsafe_allow_html=True)
@@ -120,11 +120,11 @@ def render(platforms: list[dict[str, Any]]) -> None:
     with st.expander(f"Archived claims checked ({len(findings)})", expanded=False):
         for finding in findings:
             links = " · ".join(map_view.link(item["url"], item["label"]) for item in _source_links(finding.get("source_ids"), sources))
-            st.markdown(f'<div style="margin:.35rem 0;font-size:.82rem"><span class="sd-node-tag">{map_view.esc(finding.get("status"))}</span> '
+            st.markdown(f'<div style="margin:.35rem 0;font-size:12px"><span class="sd-node-tag">{map_view.esc(finding.get("status"))}</span> '
                         f'<i>{map_view.esc(finding.get("archived_claim"))}</i><br>{map_view.esc(finding.get("assessment"))}'
                         f'{("<br><span class=sd-muted>" + links + "</span>") if links else ""}</div>', unsafe_allow_html=True)
     with st.expander(f"Sources ({len(sources)})", expanded=False):
         for source in sources.values():
-            st.markdown(f'<div style="font-size:.8rem;margin:.25rem 0">{map_view.link(source.get("url", ""), source.get("title") or source["id"])}'
+            st.markdown(f'<div style="font-size:12px;margin:.25rem 0">{map_view.link(source.get("url", ""), source.get("title") or source["id"])}'
                         f' <span class="sd-muted">· published {map_view.esc(source.get("published") or "n/a")} · accessed '
                         f'{map_view.esc(source.get("accessed"))}</span></div>', unsafe_allow_html=True)

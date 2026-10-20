@@ -66,7 +66,7 @@ def test_asset_register_groups_records_by_tag_and_reports_problems(folder) -> No
     rows = ac.register_rows(data["assets"], {"FID1"})
     first = next(row for row in rows if row["asset_id"] == "FA#1-0")
     assert first["category"] == "Fans" and first["linked_faults"] == 1 and first["state"] is None
-    assert first["operational"] == first["finding"] == "Not in the register (no readings)" and "Unavailable" in first["measurements"]
+    assert first["operational"] == first["finding"] == "No readings" and "Unavailable" in first["measurements"]
 
 
 def test_fault_log_states_and_validation_without_personal_details(folder) -> None:
@@ -108,11 +108,11 @@ def test_pages_use_the_files_when_configured_and_say_so_when_not(folder, monkeyp
     faults.run()
     assert not faults.exception
     markup = "\n".join(item.value for item in faults.markdown)
-    assert "as at the end of the export" in markup and "open at export" in markup and "Imported iSMM export · not live" in markup
+    assert "As at 02 Jun 2025" in markup and "<span>Open</span>" in markup and "Imported · not live" in markup
     calendar = AppTest.from_file(str(APP), default_timeout=90)
     calendar.query_params["view"] = "calendar"
     calendar.run()
-    assert not calendar.exception and calendar.button_group(key="calendar_source").value == "Imported event orders"
+    assert not calendar.exception and calendar.button_group(key="calendar_source").value == "Real event orders"
     assets = AppTest.from_file(str(APP), default_timeout=90)
     assets.query_params["view"] = "assets"
     assets.run()

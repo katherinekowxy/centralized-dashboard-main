@@ -48,5 +48,5 @@ def test_app_lands_on_the_overview(monkeypatch) -> None:
     at = AppTest.from_file(str(APP), default_timeout=90).run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Needs attention now" in markup and "Asset operational state" in markup and "Coming up" in markup
+    assert "Needs attention" in markup and "Asset health" in markup and "Coming up" in markup and "Demo data" in markup
     assert 'href="?view=ptw-map"' in markup

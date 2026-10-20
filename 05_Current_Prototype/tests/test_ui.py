@@ -57,7 +57,7 @@ def test_external_references_are_separate_and_all_platforms_render() -> None:
         next(widget for widget in at.selectbox if widget.label == "Platform").set_value(name).run()
         assert not at.exception
         markup = "\n".join(item.value for item in at.markdown)
-        assert "External reference · not integrated" in markup
+        assert "Reference only · not integrated" in markup
         assert "demo / synthetic" not in markup
         assert "not SignalDesk" in markup
     _go(at, "Overview")
@@ -74,7 +74,7 @@ def test_default_overview_is_five_asset_cards() -> None:
     assert not at.get("plotly_chart")  # Overview is status dots only; graphs live on the asset page.
     assert not at.dataframe  # Detail tables stay off the landing view.
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Diagnostics replay · demo / synthetic scenario" in markup
+    assert "Demo scenario" in markup
     assert "Open jobs" in markup and "Detector not assessed" in markup
     assert "<b>1</b> need attention" in markup and "Sustained rise in earth leakage" in markup
     # Attention first: DB-01's card and button precede the in-range assets.

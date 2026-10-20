@@ -42,7 +42,7 @@ def test_dashboard_and_asset_page_render() -> None:
                              default_timeout=30).run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Down</small><b>2</b>" in markup and "synthetic" in markup
+    assert "Down</small><b>2</b>" in markup and "demo data" in markup
     page = AppTest.from_string("from demo import asset_dashboard\nfrom site_fixture import FAKE_DB\n"
                                "asset_dashboard.render_asset_page('FDM-CHL-01', FAKE_DB)\n", default_timeout=30).run()
     assert not page.exception

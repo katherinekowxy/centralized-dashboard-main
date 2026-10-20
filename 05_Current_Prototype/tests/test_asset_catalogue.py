@@ -18,7 +18,7 @@ def test_site_rows_cover_the_register_and_keep_operational_state() -> None:
     assert {row["asset_id"] for row in rows} == {asset["asset_id"] for asset in FAKE_DB.assets()}
     monitored = {row["asset_id"]: row["state"] for row in board(FAKE_DB, include_event_power=True)["rows"]}
     for row in rows:
-        assert row["source"] == ac.SITE and row["finding"] == "No detector on site data" and row["finding_key"] is None
+        assert row["source"] == ac.SITE and row["finding"] == "No detector" and row["finding_key"] is None
         assert row["state"] == monitored.get(row["asset_id"], "unmonitored")
         assert row["href"] == f"?asset={row['asset_id']}"
 
@@ -26,7 +26,7 @@ def test_site_rows_cover_the_register_and_keep_operational_state() -> None:
 def test_replay_rows_report_findings_but_no_operational_state() -> None:
     row = ac.replay_row(PUMP, "alert", "Bearing temperature finding", ["Motor current", "Bearing temp"], 2, "fresh")
     assert row["category"] == "Pumps" and row["state"] is None
-    assert row["operational"] == "Not reported by the replay" and row["finding"] == "Detector finding"
+    assert row["operational"] == "Not reported" and row["finding"] == "Detector finding"
     assert row["work"] == "2 open work orders" and ac.needs_attention(row)
     assert not ac.needs_attention(ac.replay_row(PUMP, "idle", "Not assessed", [], 0, "missing"))
 
@@ -53,7 +53,7 @@ def test_page_lists_both_sources_and_opens_the_engineering_view(monkeypatch) -> 
     assert not at.exception
     table = at.dataframe[0].value
     assert {ac.SITE, ac.REPLAY} == set(table["Source"])
-    assert set(table.loc[table["Source"] == ac.REPLAY, "Operational state"]) == {"Not reported by the replay"}
-    assert set(table.loc[table["Source"] == ac.SITE, "Diagnostic finding"]) == {"No detector on site data"}
+    assert set(table.loc[table["Source"] == ac.REPLAY, "Operational state"]) == {"Not reported"}
+    assert set(table.loc[table["Source"] == ac.SITE, "Diagnostic finding"]) == {"No detector"}
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Site operations + diagnostics replay · demo / synthetic" in markup and "Chillers" in markup
+    assert "Demo data" in markup and "Asset overview" in markup

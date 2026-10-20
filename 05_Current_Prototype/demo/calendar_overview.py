@@ -24,50 +24,50 @@ STAR = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 6 6.6.
 CSS = """
 .sc-sum {display:flex;flex-wrap:wrap;gap:.5rem;margin:.1rem 0 .7rem}
 .sc-sum span {display:inline-flex;align-items:center;gap:.4rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);border-radius:.6rem;
-  padding:.5rem .9rem;font-size:1.05rem;color:var(--gbb-ink-2)}
-.sc-sum b {font-size:1.45rem;color:var(--gbb-ink)}
+  padding:.5rem .9rem;font-size:14px;color:var(--gbb-ink-2)}
+.sc-sum b {font-size:16px;color:var(--gbb-ink)}
 .sc-grid {display:block;border:1px solid var(--gbb-line);border-radius:12px;overflow:hidden;background:var(--gbb-surface)}
 .sc-days {position:relative;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--gbb-line)}
-.sc-days div {padding:.5rem .6rem;font-size:.95rem;font-weight:700;color:var(--gbb-ink-3);border-left:1px solid var(--gbb-line)}
-.sc-days div b {display:block;font-size:1.2rem;color:var(--gbb-ink)}
+.sc-days div {padding:.5rem .6rem;font-size:13px;font-weight:700;color:var(--gbb-ink-3);border-left:1px solid var(--gbb-line)}
+.sc-days div b {display:block;font-size:16px;color:var(--gbb-ink)}
 .sc-days .sc-today {background:var(--gbb-pink-tint)}
 .sc-days .sc-today b {color:var(--gbb-pink)}
 .sc-corner {border-bottom:1px solid var(--gbb-line)}
-.sc-zone {padding:.5rem .9rem;font-size:1.2rem;font-weight:800;color:var(--gbb-ink);background:var(--gbb-surface-2);border-top:2px solid var(--gbb-line-strong)}
+.sc-zone {padding:.5rem .9rem;font-size:16px;font-weight:800;color:var(--gbb-ink);background:var(--gbb-surface-2);border-top:2px solid var(--gbb-line-strong)}
 .sc-cells {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-flow:row dense;align-content:start;
   padding:4px 0;border-top:1px solid var(--gbb-line);min-height:40px}
 .sc-chip {display:flex;align-items:center;gap:.3rem;min-height:34px;margin:6px 6px 3px 4px;padding:.15rem .45rem;border-radius:8px;min-width:0;position:relative;
-  overflow:visible;white-space:normal;font-size:.92rem;font-weight:750;line-height:1.12;color:var(--gbb-ink) !important;text-decoration:none !important}
+  overflow:visible;white-space:normal;font-size:13px;font-weight:750;line-height:1.12;color:var(--gbb-ink) !important;text-decoration:none !important}
 .sc-chip:hover {filter:brightness(1.25)}
 .sc-chip .sc-text {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0;
   word-break:normal;overflow-wrap:normal;hyphens:none}
 .sc-bang {flex:none;display:grid;place-items:center;width:1.25rem;height:1.25rem;border-radius:50%;
-  background:var(--gbb-ink);color:#fff;font-size:.85rem;font-weight:900}
+  background:var(--gbb-ink);color:#fff;font-size:13px;font-weight:900}
 .sc-chip .sc-bang {position:absolute;top:-.5rem;right:-.4rem;box-shadow:0 0 0 2px #fff}  /* on the corner: the words keep their room */
 .sc-chip.sc-clashing {outline:2px solid var(--gbb-ink);outline-offset:1px}
 .sc-ptw {border:2px solid var(--c);border-left-width:7px;background:color-mix(in srgb, var(--c) 22%, var(--gbb-surface))}
-.sc-ptw .sp-logo {font-size:.8rem}
+.sc-ptw .sp-logo {font-size:12px}
 .sc-event {border:1.5px solid var(--gbb-ink);background:var(--gbb-surface-2)}
 .sc-maint {border:1.5px dashed var(--gbb-ink-3);background:var(--gbb-surface-2)}
 .sc-chip svg {flex:none;width:18px;height:18px}
-.sc-clash {flex:none;margin-left:auto;padding:0 .3rem;border-radius:4px;background:var(--gbb-ink);color:#fff;font-size:.62rem;
+.sc-clash {flex:none;margin-left:auto;padding:0 .3rem;border-radius:4px;background:var(--gbb-ink);color:#fff;font-size:12px;
   font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-.sc-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;margin:.8rem 0 .2rem;font-size:.95rem;color:var(--gbb-ink-2)}
+.sc-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;margin:.8rem 0 .2rem;font-size:13px;color:var(--gbb-ink-2)}
 .sc-legend span {display:inline-flex;align-items:center;gap:.35rem}
 .sc-legend svg {width:14px;height:14px}
 .sc-key {display:inline-block;width:22px;height:12px;border-radius:3px}
 .sc-list {display:none}
-.sc-list h4 {margin:.9rem 0 .35rem;font-size:1.1rem;color:var(--gbb-ink);font-weight:800}
-.sc-list a {display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;margin:0 0 .4rem;border-radius:.6rem;font-size:1.05rem;
+.sc-list h4 {margin:.9rem 0 .35rem;font-size:14px;color:var(--gbb-ink);font-weight:800}
+.sc-list a {display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;margin:0 0 .4rem;border-radius:.6rem;font-size:14px;
   color:var(--gbb-ink) !important;text-decoration:none !important;border:1px solid var(--gbb-line)}
 .sc-list a.sc-ptw {border-left:4px solid var(--c)}
 .sc-list small {margin-left:auto;color:var(--gbb-ink-3);font-variant-numeric:tabular-nums}
 .sc-list svg {width:14px;height:14px;flex:none}
 .sc-list .sc-text {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.sc-note {font-size:.9rem;color:var(--gbb-ink-3);margin-top:.5rem}
-.sc-head {font-size:2.4rem;font-weight:800;margin:.2rem 0 .3rem;display:flex;align-items:center;gap:.6rem;color:var(--gbb-ink)}
+.sc-note {font-size:13px;color:var(--gbb-ink-3);margin-top:.5rem}
+.sc-head {font-size:24px;font-weight:800;margin:.2rem 0 .3rem;display:flex;align-items:center;gap:.6rem;color:var(--gbb-ink)}
 .sc-head svg {width:2rem;height:2rem}
-.sc-meta {font-size:1.25rem;color:var(--gbb-ink-2);margin:0 0 1rem}
+.sc-meta {font-size:16px;color:var(--gbb-ink-2);margin:0 0 1rem}
 .sc-meta b {color:var(--gbb-ink)}
 @media (max-width: 640px) {.sc-grid {display:none} .sc-list {display:block}}
 """
@@ -250,7 +250,7 @@ def render_event_page(eo_id: str, db: Any = None) -> None:
                         f'href="?ptw={esc(row["ptw_id"])}" target="_blank">{logo_html(row.get("contractor") or {})}{esc(row["title"])}'
                         f' <span class="sc-clash">Clash</span><small>{esc(window_text(row["start_at"], row["end_at"]))}</small></a>'
                         for row in during)
-        st.markdown(f'<div class="sc-head" style="font-size:1rem">Works in this zone during the event</div>'
+        st.markdown(f'<div class="sc-head" style="font-size:14px">Works in this zone during the event</div>'
                     f'<div class="sc-list" style="display:block">{links}</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="sc-meta">No permits in this zone during the event.</div>', unsafe_allow_html=True)

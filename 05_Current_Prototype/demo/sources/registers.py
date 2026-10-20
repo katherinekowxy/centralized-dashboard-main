@@ -347,3 +347,59 @@ def events_on(events: list[dict], first: date, last: date) -> list[dict]:
     return [event for event in events if event["first_day"] and (
         any(first <= day <= last for day in event["days"]) if event["days"] is not None
         else event["first_day"] <= last and event["last_day"] >= first)]
+
+
+SCHEDULE_FILE = "PTW.xlsx"
+SCHEDULE_COLUMNS = ("Schedule ID", "Trade", "Trade Category", "Strategic Partner", "Frequency", "Description", "Scope", "Site",
+                    "Building", "Floor", "Room", "Start Date", "End Date", "Exclude", "Work Started Date", "Work Completed Date",
+                    "Cancel Approved Date")
+TIME_PREFIX = re.compile(r"^\s*\[([^\]]*)\]\s*")
+
+
+def load_schedules(folder: Path) -> dict[str, Any]:
+    """iSMM contractor-work schedules (``PTW.xlsx``): what is planned where and when. Columns read are SCHEDULE_COLUMNS
+    (Schedule ID, Start Date and End Date required). Not read: who started, attended, acknowledged or cancelled work.
+    The time window written at the start of a description ("[9am - 6pm] ...") is split out as the time text."""
+    import pandas as pd
+
+    path = folder / SCHEDULE_FILE
+    if not path.is_file():
+        return {"schedules": [], "issues": [issue("missing_file", f"{SCHEDULE_FILE} not found", file=SCHEDULE_FILE)], "modified": None}
+    frame = pd.read_excel(path, dtype=object, usecols=lambda column: column in SCHEDULE_COLUMNS)
+    problems, fatal = _missing(frame, SCHEDULE_COLUMNS, ("Schedule ID", "Start Date", "End Date"), SCHEDULE_FILE)
+    schedules, seen = [], set()
+    if not fatal:
+        for index, row in enumerate(frame.to_dict("records")):
+            excel_row = index + 2
+            sid = _text(row.get("Schedule ID"))
+            if not sid:
+                problems.append(issue("blank_value", "Schedule ID is blank", file=SCHEDULE_FILE, row=excel_row, field="Schedule ID"))
+            elif sid in seen:
+                problems.append(issue("duplicate_row", "Schedule repeated; counted once", file=SCHEDULE_FILE, row=excel_row, ref=sid))
+                continue
+            seen.add(sid)
+            start, end = _when(row.get("Start Date")), _when(row.get("End Date"))
+            if start is None or end is None:
+                problems.append(issue("invalid_value", "Start or end date could not be read", file=SCHEDULE_FILE, row=excel_row,
+                                      field="Start Date/End Date", ref=sid))
+            elif end < start:
+                problems.append(issue("end_before_start", "End before start", file=SCHEDULE_FILE, row=excel_row, field="End Date", ref=sid))
+            text = readable(_text(row.get("Description")))
+            match = TIME_PREFIX.match(text)
+            state = ("cancelled" if _when(row.get("Cancel Approved Date")) else "completed" if _when(row.get("Work Completed Date"))
+                     else "started" if _when(row.get("Work Started Date")) else "scheduled")
+            schedules.append({"id": sid, "trade": _text(row.get("Trade")), "category": _text(row.get("Trade Category")),
+                              "company": _text(row.get("Strategic Partner")), "frequency": _text(row.get("Frequency")),
+                              "title": TIME_PREFIX.sub("", text) if match else text, "time_text": match.group(1).strip() if match else "",
+                              "scope": _text(row.get("Scope")), "site": _text(row.get("Site")), "building": _text(row.get("Building")),
+                              "room": _text(row.get("Room")), "start": start.date() if start else None, "end": end.date() if end else None,
+                              "excluded_days": _text(row.get("Exclude")), "state": state, "source_row": excel_row})
+    return {"schedules": schedules, "issues": problems, "modified": datetime.fromtimestamp(path.stat().st_mtime, SGT)}
+
+
+def schedules_on(schedules: list[dict], first: date, last: date) -> list[dict]:
+    """Schedules whose window overlaps [first, last], leaving out cancelled ones. The export's Exclude column is not
+    applied: on the one weekly schedule it names the same weekdays the event workbook says the event runs, so its
+    meaning is unclear. Pages show its text instead of guessing."""
+    return [item for item in schedules if item["state"] != "cancelled" and item["start"] and item["end"]
+            and item["start"] <= last and item["end"] >= first]

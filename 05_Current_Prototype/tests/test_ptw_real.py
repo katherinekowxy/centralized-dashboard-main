@@ -96,13 +96,13 @@ def test_forms_are_mapped_explicitly_and_problems_are_reported_not_dropped(folde
 
 def test_map_counts_permits_once_per_point_and_lists_exceptions(folder) -> None:
     permits, buildings, _ = loaded(folder)
-    shown = ptw_real.select(permits["records"], NOW, "All records")
+    shown = ptw_real.select(permits["records"], NOW, "All")
     points, unplaced = ptw_real.map_points(shown, locations.points(buildings), NOW)
     hq = next(point for point in points if "GBHQ" in point["names"])
     assert [p["ref"] for p in hq["permits"]].count("GBC/1/PTW00003") == 1  # GBHQ and BMS Room share a coordinate
     assert any("Arrival Area" in point["names"] and point["count"] == 1 for point in points)
     assert {r["ref"] for r in unplaced} >= {"GBC/1/PTW00004", ""}  # unknown address and an unmapped building
-    today = ptw_real.select(permits["records"], NOW, "Active today")
+    today = ptw_real.select(permits["records"], NOW, "Today")
     assert {r["ref"] for r in today} == {"GBC/1/PTW00001", "GBC/1/PTW00003", "GBC/1/PTW00004", ""}
     # excluded: tomorrow's permit (00002), the inverted window (00005) and the unreadable start time (00006)
     page = ptw_real.map_page(points).lower()
@@ -116,13 +116,13 @@ def test_page_reads_the_configured_folder_and_says_when_it_is_not_set(folder, mo
     at.run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
-    assert "Imported permit records · not live" in markup and "permits in this selection" in markup
-    next(control for control in at.button_group if control.key == "rp_period").set_value("All records").run()
+    assert "Imported · not live" in markup and "Not on the map" in markup
+    next(control for control in at.button_group if control.key == "rp_period").set_value("All").run()
     assert not at.exception
-    assert "<b>7</b><span>permits in this selection" in "\n".join(item.value for item in at.markdown)
+    assert "<span>Permits</span></div><b>7</b>" in "\n".join(item.value for item in at.markdown)
     monkeypatch.delenv(ENV_VAR)
     bare = AppTest.from_file(str(APP), default_timeout=90)
     bare.query_params["view"] = "ptw-map"
     bare.run()
     assert not bare.exception
-    assert next(control for control in bare.button_group if control.key == "ptw_source").value == "Site demo (synthetic)"
+    assert next(control for control in bare.button_group if control.key == "ptw_source").value == "Demo site"
