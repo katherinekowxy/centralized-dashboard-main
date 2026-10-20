@@ -12,38 +12,39 @@ import html
 from datetime import datetime, time, timedelta, timezone
 from typing import Any
 
-from demo import site_theme
+from demo import brand, site_theme
 from demo.asset_state import COLOUR, EVENT_POWER_TYPES, LABEL, SEVERITY, SGT, asset_state, maintenance_today, ts
 
 POINTS = (("voltage_v", "Voltage", "V"), ("current_a", "Current", "A"), ("power_kw", "Power", "kW"),
           ("power_factor", "Power factor", ""), ("energy_kwh", "Energy", "kWh"))
-LINE, PAPER, PLOT, GRID, MUTED, INK = "#83aef3", "#0d1928", "#122237", "#294056", "#9baebc", "#e9f0f5"
+LINE, PAPER, PLOT, GRID, MUTED, INK = (brand.CHART["reading"], brand.CHART["paper"], brand.CHART["plot"], brand.CHART["grid"],
+                                      brand.INK_3, brand.INK)
 
-CONE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.1 2.5h3.8l5.2 16.5H4.9z" fill="#f1f5f9"/>'
-        '<path d="M8.5 8.7h7l.95 3.1h-8.9zM6.8 14.3h10.4l.9 2.8H5.9z" fill="#64748b"/>'
-        '<rect x="2.5" y="19" width="19" height="2.6" rx="1.1" fill="#f1f5f9"/></svg>')
+CONE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.1 2.5h3.8l5.2 16.5H4.9z" fill="#334155"/>'
+        '<path d="M8.5 8.7h7l.95 3.1h-8.9zM6.8 14.3h10.4l.9 2.8H5.9z" fill="#fff"/>'
+        '<rect x="2.5" y="19" width="19" height="2.6" rx="1.1" fill="#334155"/></svg>')  # slate on white, as on the TV pages
 
 CSS = """
 .sa-bar {display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.4rem;margin:0 0 .8rem}
 .sa-tally {display:flex;flex-wrap:wrap;gap:.6rem}
-.sa-tally span {display:inline-flex;align-items:center;gap:.5rem;background:#13233a;border:1px solid #294056;
-  border-radius:.7rem;padding:.5rem .9rem;font-size:1.05rem;color:#e2eaf1}
-.sa-tally b {font-size:1.45rem;color:#fff}
+.sa-tally span {display:inline-flex;align-items:center;gap:.5rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);
+  border-radius:.7rem;padding:.5rem .9rem;font-size:1.05rem;color:var(--gbb-ink-2)}
+.sa-tally b {font-size:1.45rem;color:var(--gbb-ink)}
 .sa-zones {column-width:19rem;column-gap:.9rem}  /* zones flow down columns across the full width */
-.sa-group {display:inline-block;width:100%;box-sizing:border-box;break-inside:avoid;margin:0 0 .9rem;border:2px solid #3b5a77;
-  border-radius:1.1rem;background:#0f1b2b;padding:.6rem .75rem .75rem}
+.sa-group {display:inline-block;width:100%;box-sizing:border-box;break-inside:avoid;margin:0 0 .9rem;border:2px solid var(--gbb-line-strong);
+  border-radius:1.1rem;background:var(--gbb-surface);padding:.6rem .75rem .75rem}
 .sa-zone {display:flex;flex-wrap:wrap;align-items:center;gap:.3rem 1rem;margin:0 0 .55rem;font-size:1.35rem;font-weight:800;
-  line-height:1.2;color:#fff}
-.sa-zone em {display:inline-flex;align-items:center;gap:.4rem;font-style:normal;font-size:1.05rem;font-weight:800;color:#fff}
+  line-height:1.2;color:var(--gbb-ink)}
+.sa-zone em {display:inline-flex;align-items:center;gap:.4rem;font-style:normal;font-size:1.05rem;font-weight:800;color:var(--gbb-ink)}
 .sa-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .sa-box {position:relative;display:flex;flex-direction:column;gap:.1rem;padding:.55rem .7rem .5rem;border-radius:12px;
-  min-height:3.8rem;background:color-mix(in srgb, var(--c) 13%, #0f1b2b);
-  border:2px solid color-mix(in srgb, var(--c) 80%, transparent);color:#e9f0f5 !important;text-decoration:none !important}
-.sa-box:hover {border-color:var(--c);background:color-mix(in srgb, var(--c) 20%, #0f1b2b)}
-.sa-name {font-weight:750;font-size:1.12rem;line-height:1.2;color:#fff;word-break:normal;overflow-wrap:normal;text-wrap:balance}
+  min-height:3.8rem;background:color-mix(in srgb, var(--c) 13%, var(--gbb-surface));
+  border:2px solid color-mix(in srgb, var(--c) 80%, transparent);color:var(--gbb-ink) !important;text-decoration:none !important}
+.sa-box:hover {border-color:var(--c);background:color-mix(in srgb, var(--c) 20%, var(--gbb-surface))}
+.sa-name {font-weight:750;font-size:1.12rem;line-height:1.2;color:var(--gbb-ink);word-break:normal;overflow-wrap:normal;text-wrap:balance}
 .sa-box:has(.sa-cone) .sa-name {padding-right:1.4rem}  /* room for the cone only where there is one */
-.sa-id {font-size:.82rem;color:#b4c4d1;font-variant-numeric:tabular-nums}
-.sa-state {margin-top:auto;padding-top:.3rem;display:inline-flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:750;color:#fff}
+.sa-id {font-size:.82rem;color:var(--gbb-ink-3);font-variant-numeric:tabular-nums}
+.sa-state {margin-top:auto;padding-top:.3rem;display:inline-flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:750;color:var(--gbb-ink)}
 .sa-dot {display:inline-block;flex:none;width:.8rem;height:.8rem;border-radius:50%;background:var(--c)}
 .sa-orb {display:none}
 @supports (offset-path: inset(0 round 12px)) {
@@ -53,24 +54,24 @@ CSS = """
   .sa-orb + .sa-orb {animation-delay:-1.6s}
 }
 @keyframes sa-orbit {from {offset-distance:0%} to {offset-distance:100%}}
-.sa-cone {position:absolute;top:-.7rem;right:-.55rem;width:1.9rem;height:1.9rem;filter:drop-shadow(0 0 4px rgba(241,245,249,.4));
+.sa-cone {position:absolute;top:-.7rem;right:-.55rem;width:1.9rem;height:1.9rem;filter:drop-shadow(0 0 2px rgba(255,255,255,.9));
   animation:sa-pulse 1.6s ease-in-out infinite}
 @keyframes sa-pulse {0%,100% {transform:scale(1);opacity:1} 50% {transform:scale(1.15);opacity:.6}}
-.sa-legend {display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:0;font-size:.95rem;color:#d5e0ea}
+.sa-legend {display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:0;font-size:.95rem;color:var(--gbb-ink-2)}
 .sa-legend span {display:inline-flex;align-items:center;gap:.4rem}
 .sa-legend .sa-cone {position:static;width:1.2rem;height:1.2rem;animation:none}
-.sa-note {font-size:.9rem;color:#b4c4d1}
-.sa-head {display:flex;align-items:center;gap:.7rem;font-size:2.4rem;font-weight:800;margin:.2rem 0 .3rem;color:#fff}
+.sa-note {font-size:.9rem;color:var(--gbb-ink-3)}
+.sa-head {display:flex;align-items:center;gap:.7rem;font-size:2.4rem;font-weight:800;margin:.2rem 0 .3rem;color:var(--gbb-ink)}
 .sa-head .sa-dot {width:1.4rem;height:1.4rem}
 .sa-chips {display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0 .3rem}
-.sa-chip {display:inline-flex;align-items:center;gap:.5rem;border:2px solid #37556b;border-radius:99px;padding:.3rem .8rem;
-  font-size:1.05rem;color:#fff}
+.sa-chip {display:inline-flex;align-items:center;gap:.5rem;border:2px solid var(--gbb-line);border-radius:99px;padding:.3rem .8rem;
+  font-size:1.05rem;color:var(--gbb-ink)}
 .sa-chip .sa-cone {position:static;width:1.4rem;height:1.4rem;animation:none}
 .sa-tiles {display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.8rem;margin:.8rem 0 1rem}
-.sa-tile {background:#13233a;border:2px solid #2c4560;border-radius:1rem;padding:.9rem 1.1rem}
-.sa-tile small {display:block;font-size:1rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c3d2df}
-.sa-tile b {font-size:2.2rem;color:#fff;font-variant-numeric:tabular-nums}
-.sa-tile i {font-style:normal;font-size:1.1rem;color:#d5e0ea;margin-left:.3rem}
+.sa-tile {background:var(--gbb-surface-2);border:2px solid var(--gbb-line);border-radius:1rem;padding:.9rem 1.1rem}
+.sa-tile small {display:block;font-size:1rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
+.sa-tile b {font-size:2.2rem;color:var(--gbb-ink);font-variant-numeric:tabular-nums}
+.sa-tile i {font-style:normal;font-size:1.1rem;color:var(--gbb-ink-2);margin-left:.3rem}
 @media (prefers-reduced-motion: reduce) {.sa-orb, .sa-cone {animation:none}}
 @media (max-width: 640px) {.sa-zones {columns:1}}
 """
@@ -214,7 +215,7 @@ def render_asset_page(asset_id: str, db: Any = None) -> None:
         f'{esc(item.get("wo_id") or item.get("ptw_id"))} · {esc(item.get("title") or item.get("summary"))}</span>'
         for item in row["maintenance"])
     st.markdown(f'<div class="sa-head" style="--c:{COLOUR[row["state"]]}"><i class="sa-dot"></i>{esc(row.get("name"))}</div>'
-                f'<div class="sa-note">{esc(asset_id)} · {esc(zone)} · <b style="color:#e9f0f5">{LABEL[row["state"]]}</b>: '
+                f'<div class="sa-note">{esc(asset_id)} · {esc(zone)} · <b style="color:var(--gbb-ink)">{LABEL[row["state"]]}</b>: '
                 f'{esc(row["reason"])}</div>' + (f'<div class="sa-chips">{chips}</div>' if chips else ""), unsafe_allow_html=True)
     latest = db.latest_readings().get(asset_id, {})
     tiles = "".join(f'<div class="sa-tile"><small>{name}</small><b>{number(latest[point]["value"])}</b><i>{unit}</i></div>'

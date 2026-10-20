@@ -41,7 +41,7 @@ Maintenance opens with the fleet fault timeline and category ranking; detailed w
 Timeline markers show report dates. Their colours show status at the replay cutoff; they do not show historical status at each earlier date or encode outage duration. Work-order hover details include the recorded closure and resolution where available.
 
 **Colour and scale rules (7 October 2026).**
-- Teal is reserved for the green "checked, no finding" dot. The UI accent (selected items, tabs, primary button) is the neutral-information blue, and schematic pipes and air flow are violet.
+- Teal is reserved for the "checked, no finding" dot. Since 20 October 2026 the UI accent (selected items, tabs, primary button, focus) is the brand pink, which is never used for status; schematic pipes and air flow are violet.
 - Schematic markers that are not sensors are diamonds, never circles, so they can't be read as status dots. For colour-blind viewers, the pale-blue equipment outline is close to teal, so shape carries the difference.
 - Trend y-axes (`demo/chart_scale.py`) keep healthy noise small:
   - magnitudes (A, mA, kW, L/s, kPa, mm/s) start at zero;
@@ -72,3 +72,16 @@ No MTBF, predictive accuracy, or fleet health score is calculated from this shor
 
 Both views use the shared, Streamlit-free renderer `demo/map_view.py` and the same layer ids, so a vendor path can be compared with SignalDesk layer by layer.
 
+
+## Brand and status tokens (20 October 2026)
+
+All colours, the font stack and the status vocabularies live in `demo/brand.py`; pages use its CSS variables (`--gbb-*`) instead of hex values.
+
+- **Brand:** pink `#E2124F`, grey `#55595C` and white, sampled from the supplied logo file and confirmed by the project lead. Every other colour is a neutral derived from the brand grey or a status colour with a fixed meaning.
+- **Pink is identity, never status.** It marks the header rule, the selected navigation item, primary buttons, focus and selection.
+- **One vocabulary per concept.** Operational asset state, diagnostic findings, work-order status, PTW status and data-source status each have their own words, colours and shapes. They are never merged into one red/amber/green scale.
+- **Colour is never the only signal.** Every status has a word. States that share a hue family also differ in shape.
+- **Data source status** uses border style and a word: solid for live or imported, dashed for demo/synthetic or manual, dotted for planned. It never uses a status colour.
+- **Contrast:** text is at least 4.5:1 on white and status marks at least 3:1. `tests/test_brand.py` checks this.
+- **Font:** the brand typeface has not been supplied, so pages use the operating system's UI font (`brand.FONT`).
+- **3D equipment schematics** are labelled as illustrative and not a CAD, BIM or installation drawing.

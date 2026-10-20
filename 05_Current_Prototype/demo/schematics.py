@@ -18,13 +18,13 @@ from demo.engine import ASSETS, POINTS
 LAYERS = ("Equipment", "Piping / air", "Electrical", "Sensors")
 VIEWS = ("Isometric", "Top", "Side")
 
-_NAVY = "#09192b"
-_BLUE = "#9ac9e6"
-_BLUE_DIM = "#527c9b"
-_FLOW = "#c58bf2"  # pipes and air flow; never a status colour
-_AMBER = "#ffbf6e"
-_SENSOR = "#d8f48f"
-_SELECTED = "#ff758b"
+_NAVY = "#F5F6F7"  # canvas (brand.SURFACE_2); the name is historical
+_BLUE = "#3F4D5A"
+_BLUE_DIM = "#8A97A3"
+_FLOW = "#7C3AED"  # pipes and air flow; never a status colour
+_AMBER = "#A16207"  # conductors (copper), not the warning amber
+_SENSOR = "#4D7C0F"
+_SELECTED = "#E2124F"  # selection uses the brand pink
 
 
 class _Drawing:
@@ -364,7 +364,7 @@ def asset_schematic(asset_id: str, layers: list[str] | None = None,
             z=[drawing.sensors[p][2] for p in points],
             mode="markers+text", text=[p.replace("_", " ").upper() if p == selected_point else "" for p in points],
             customdata=points, textposition="top center",
-            textfont=dict(color="#e9f5fb", size=11),
+            textfont=dict(color="#24272A", size=11),
             marker=dict(size=[12 if p == selected_point else 7 for p in points],
                         color=[(point_colors or {}).get(p) or (_SELECTED if p == selected_point else _SENSOR) for p in points],
                         symbol="circle", line=dict(color=_NAVY, width=1)),
@@ -381,8 +381,8 @@ def asset_schematic(asset_id: str, layers: list[str] | None = None,
     fig.update_layout(
         paper_bgcolor=_NAVY, plot_bgcolor=_NAVY,
         margin=dict(l=0, r=0, t=45, b=0), height=height,
-        title=dict(text=f"{asset_name}  ·  CONCEPTUAL SCHEMATIC",
-                   font=dict(color="#d8eaf5", size=15), x=.02, y=.98),
+        title=dict(text=f"{asset_name}  ·  ILLUSTRATIVE SCHEMATIC, NOT A CAD / BIM OR INSTALLATION DRAWING",
+                   font=dict(color="#24272A", size=14), x=.02, y=.98),
         scene=dict(
             bgcolor=_NAVY, camera=camera, dragmode="orbit", aspectmode="data",
             xaxis=dict(visible=False, showbackground=False),
@@ -390,6 +390,6 @@ def asset_schematic(asset_id: str, layers: list[str] | None = None,
             zaxis=dict(visible=False, showbackground=False),
         ),
         uirevision=f"{asset_id}:{view}",
-        font=dict(family="Arial, sans-serif", color="#d8eaf5"),
+        font=dict(family="Segoe UI, Arial, sans-serif", color="#24272A"),
     )
     return fig

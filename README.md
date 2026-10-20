@@ -29,7 +29,7 @@ The sidebar has two areas.
 | Calendar overview | This week's permits, event orders and maintenance, with clashes marked. |
 | Meeting rooms | Two room calendars side by side, with booking and cancelling. |
 
-The Asset dashboard and Asset schematic use the new light TV design; the other tabs are still in the earlier dark design.
+Every page uses one light design with Gardens by the Bay colours (`05_Current_Prototype/demo/brand.py`).
 
 **Diagnostics demo** is the earlier prototype: replayed sensor scenarios, rule-based diagnostic dots, asset pages, maintenance history and an evidence review. [05_Current_Prototype/README.md](05_Current_Prototype/README.md) walks through it.
 

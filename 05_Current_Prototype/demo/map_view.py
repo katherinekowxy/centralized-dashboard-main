@@ -33,41 +33,41 @@ RUNS_AT_LABEL = {
 CSS = """
 .sd-map {display:flex;flex-direction:column;gap:.35rem;margin:.4rem 0 1rem}
 .sd-layer {display:grid;grid-template-columns:170px 1fr;gap:.9rem;align-items:start;
-  background:#101e30;border:1px solid #22384d;border-radius:.8rem;padding:.75rem .9rem}
+  background:var(--gbb-surface-2);border:1px solid var(--gbb-line);border-radius:.8rem;padding:.75rem .9rem}
 .sd-layer-label b {display:block;font-size:.95rem;letter-spacing:-.01em}
-.sd-layer-label span {display:block;color:#8a9eae;font-size:.72rem;line-height:1.35;margin-top:.15rem}
+.sd-layer-label span {display:block;color:var(--gbb-ink-3);font-size:.72rem;line-height:1.35;margin-top:.15rem}
 .sd-layer-nodes {display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.55rem}
-.sd-map-arrow {text-align:center;color:#8a9eae;font-size:.72rem;line-height:1.1}
-.sd-node {background:#13233a;border:1px solid #3b5a75;border-radius:.6rem;padding:.55rem .7rem;min-height:4.2rem}
+.sd-map-arrow {text-align:center;color:var(--gbb-ink-3);font-size:.72rem;line-height:1.1}
+.sd-node {background:var(--gbb-surface-2);border:1px solid var(--gbb-line-strong);border-radius:.6rem;padding:.55rem .7rem;min-height:4.2rem}
 .sd-node-compact {min-height:0}
 .sd-map-compact .sd-layer-nodes {grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
 .sd-node-compact .sd-node-head {flex-direction:column-reverse;align-items:flex-start;gap:.2rem}  /* tag above, title full width */
 .sd-node-dashed {border-style:dashed}
 .sd-node-faded {border-style:dotted;background:transparent;opacity:.78}
 .sd-node-head {display:flex;justify-content:space-between;align-items:baseline;gap:.4rem}
-.sd-node-title {font-size:.84rem;font-weight:650;color:#e9f0f5}
-.sd-node-tag {flex:none;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:#9baebc;
-  border:1px solid #3b5a75;border-radius:99px;padding:.02rem .42rem}
+.sd-node-title {font-size:.84rem;font-weight:650;color:var(--gbb-ink)}
+.sd-node-tag {flex:none;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3);
+  border:1px solid var(--gbb-line-strong);border-radius:99px;padding:.02rem .42rem}
 .sd-node-dashed .sd-node-tag {border-style:dashed}
 .sd-node-faded .sd-node-tag {border-style:dotted}
 .sd-node-metric {font-size:1.15rem;font-weight:750;margin:.2rem 0 .05rem;font-variant-numeric:tabular-nums}
-.sd-node-metric small {font-size:.72rem;font-weight:500;color:#9baebc;margin-left:.25rem}
-.sd-node-text {font-size:.74rem;color:#b4c4d1;line-height:1.4;margin-top:.15rem}
-.sd-node-where {display:inline-block;margin-top:.3rem;font-size:.72rem;color:#8a9eae}
-.sd-node details {margin-top:.3rem;font-size:.72rem;color:#9baebc}
-.sd-node summary {cursor:pointer;color:#8fb3d6}
+.sd-node-metric small {font-size:.72rem;font-weight:500;color:var(--gbb-ink-3);margin-left:.25rem}
+.sd-node-text {font-size:.74rem;color:var(--gbb-ink-3);line-height:1.4;margin-top:.15rem}
+.sd-node-where {display:inline-block;margin-top:.3rem;font-size:.72rem;color:var(--gbb-ink-3)}
+.sd-node details {margin-top:.3rem;font-size:.72rem;color:var(--gbb-ink-3)}
+.sd-node summary {cursor:pointer;color:var(--gbb-link)}
 .sd-node details div {margin-top:.25rem;line-height:1.45}
-.sd-node a {color:#8fb3d6}
+.sd-node a {color:var(--gbb-link)}
 .sd-steps {display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.55rem;margin:.3rem 0 .5rem;counter-reset:step}
-.sd-step-no {font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#8a9eae;margin-bottom:.2rem}
+.sd-step-no {font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3);margin-bottom:.2rem}
 .sd-compare {display:grid;grid-template-columns:140px 1fr 1fr;gap:.45rem .8rem;font-size:.78rem;margin:.3rem 0 1rem}
-.sd-compare > div {padding:.45rem .55rem;border-radius:.5rem;background:#101e30;border:1px solid #22384d;line-height:1.4}
-.sd-compare .sd-compare-head {background:transparent;border:none;color:#8a9eae;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:0 .2rem}
-.sd-compare .sd-compare-layer {font-weight:650;color:#e9f0f5}
+.sd-compare > div {padding:.45rem .55rem;border-radius:.5rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);line-height:1.4}
+.sd-compare .sd-compare-head {background:transparent;border:none;color:var(--gbb-ink-3);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:0 .2rem}
+.sd-compare .sd-compare-layer {font-weight:650;color:var(--gbb-ink)}
 .sd-compare ul {margin:0;padding-left:1rem}
 .sd-policy {display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.6rem;margin:.2rem 0 1rem}
-.sd-policy > div {background:#101e30;border:1px dotted #3b5a75;border-radius:.7rem;padding:.65rem .8rem;font-size:.78rem;line-height:1.45;color:#b4c4d1}
-.sd-policy b {color:#e9f0f5}
+.sd-policy > div {background:var(--gbb-surface-2);border:1px dotted var(--gbb-line-strong);border-radius:.7rem;padding:.65rem .8rem;font-size:.78rem;line-height:1.45;color:var(--gbb-ink-3)}
+.sd-policy b {color:var(--gbb-ink)}
 .sd-policy ul {margin:.3rem 0 0;padding-left:1.05rem}
 @media (max-width: 640px) {
   .sd-layer {grid-template-columns:1fr;gap:.45rem}
@@ -146,7 +146,7 @@ def compare_html(rows: Iterable[dict[str, Any]], left: str, right: str) -> str:
     for row in rows:
         def cell(items: list[str], name: str) -> str:
             if not items:
-                return f'<div><span style="color:#8a9eae">{esc(name)}: nothing in the reviewed sources</span></div>'
+                return f'<div><span style="color:var(--gbb-ink-3)">{esc(name)}: nothing in the reviewed sources</span></div>'
             return f'<div><ul>{"".join(f"<li>{esc(item)}</li>" for item in items)}</ul></div>'
         out.append(f'<div class="sd-compare-layer">{esc(row["layer"])}</div>')
         out.append(cell(row.get("left", []), left))

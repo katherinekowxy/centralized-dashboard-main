@@ -20,42 +20,42 @@ SLOT = timedelta(minutes=30)
 LENGTHS = {"30 min": 30, "1 hour": 60, "1½ hours": 90, "2 hours": 120, "3 hours": 180}
 
 CSS = """
-.rb-date {font-size:1.6rem;font-weight:800;color:#fff;line-height:1.2;white-space:nowrap}
+.rb-date {font-size:1.6rem;font-weight:800;color:var(--gbb-ink);line-height:1.2;white-space:nowrap}
 .rb-head {display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem .8rem}
-.rb-name {font-size:2.4rem;font-weight:800;color:#fff;line-height:1.1}
-.rb-seats {font-size:1.1rem;font-weight:650;color:#c3d2df}
-.rb-state {display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem;margin-top:.35rem;font-size:1.15rem;font-weight:650;color:#d5e0ea}
-.rb-pill {padding:.05rem .6rem;border:2px solid #83aef3;border-radius:.5rem;font-size:1.3rem;font-weight:800;color:#fff}
-.rb-busy .rb-pill {background:#83aef3;color:#0b1524}
+.rb-name {font-size:2.4rem;font-weight:800;color:var(--gbb-ink);line-height:1.1}
+.rb-seats {font-size:1.1rem;font-weight:650;color:var(--gbb-ink-3)}
+.rb-state {display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem;margin-top:.35rem;font-size:1.15rem;font-weight:650;color:var(--gbb-ink-2)}
+.rb-pill {padding:.05rem .6rem;border:2px solid var(--gbb-grey);border-radius:.5rem;font-size:1.3rem;font-weight:800;color:var(--gbb-ink)}
+.rb-busy .rb-pill {background:var(--gbb-grey);color:#fff}
 .rb-cal {display:grid;grid-template-columns:3.6rem minmax(0,1fr);height:calc(100vh - 21rem);min-height:640px;
-  border:2px solid #3b5a77;border-radius:1rem;background:#0f1b2b;overflow:hidden}
-.rb-axis {position:relative;background:#13233a;border-right:1px solid #294056}
+  border:2px solid var(--gbb-line-strong);border-radius:1rem;background:var(--gbb-surface);overflow:hidden}
+.rb-axis {position:relative;background:var(--gbb-surface-2);border-right:1px solid var(--gbb-line)}
 .rb-axis span {position:absolute;left:0;right:.45rem;margin-top:.15rem;text-align:right;font-size:.95rem;font-weight:750;
-  color:#d5e0ea;font-variant-numeric:tabular-nums}
+  color:var(--gbb-ink-2);font-variant-numeric:tabular-nums}
 .rb-track {position:relative;background-size:100% calc(100% / var(--hours));
-  background-image:linear-gradient(#2c4560 1px,transparent 1px),linear-gradient(transparent calc(50% - 1px),#1b2d42 calc(50% - 1px),#1b2d42 50%,transparent 50%)}
-.rb-past {position:absolute;left:0;right:0;top:0;background:rgba(3,8,15,.5)}
-.rb-now {position:absolute;left:0;right:0;z-index:3;border-top:3px solid #fff}
-.rb-now span {position:absolute;right:.3rem;top:-.8rem;padding:0 .4rem;border-radius:.3rem;background:#fff;color:#0b1524;
+  background-image:linear-gradient(var(--gbb-line) 1px,transparent 1px),linear-gradient(transparent calc(50% - 1px),var(--gbb-surface-2) calc(50% - 1px),var(--gbb-surface-2) 50%,transparent 50%)}
+.rb-past {position:absolute;left:0;right:0;top:0;background:rgba(36,39,42,.06)}
+.rb-now {position:absolute;left:0;right:0;z-index:3;border-top:3px solid var(--gbb-ink)}
+.rb-now span {position:absolute;right:.3rem;top:-.8rem;padding:0 .4rem;border-radius:.3rem;background:var(--gbb-ink);color:#fff;
   font-size:.9rem;font-weight:900;font-variant-numeric:tabular-nums}
 .rb-bk {position:absolute;left:.4rem;right:.4rem;z-index:2;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;
-  padding:.1rem .6rem;border:2px solid #83aef3;border-left-width:.5rem;border-radius:.55rem;
-  background:color-mix(in srgb, #83aef3 20%, #0f1b2b)}
+  padding:.1rem .6rem;border:2px solid var(--gbb-grey);border-left-width:.5rem;border-radius:.55rem;
+  background:color-mix(in srgb, var(--gbb-grey) 20%, var(--gbb-surface))}
 .rb-bk b {display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;flex:none;font-size:1.3rem;font-weight:800;
-  line-height:1.12;color:#fff;word-break:normal;overflow-wrap:normal}
+  line-height:1.12;color:var(--gbb-ink);word-break:normal;overflow-wrap:normal}
 .rb-long b {-webkit-line-clamp:2}
-.rb-bk span {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:1.05rem;font-weight:650;line-height:1.2;color:#dbe6f0;
+.rb-bk span {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:1.05rem;font-weight:650;line-height:1.2;color:var(--gbb-ink-2);
   font-variant-numeric:tabular-nums}
 .rb-bk.rb-short {flex-direction:row;align-items:center;gap:.6rem;padding:0 .6rem}
 .rb-short b {-webkit-line-clamp:1;font-size:1.1rem;line-height:1.05}
-.rb-short span {flex:none;font-size:1.05rem;font-weight:800;color:#fff}
-.rb-on {background:color-mix(in srgb, #83aef3 40%, #0f1b2b)}
+.rb-short span {flex:none;font-size:1.05rem;font-weight:800;color:var(--gbb-ink)}
+.rb-on {background:color-mix(in srgb, var(--gbb-grey) 40%, var(--gbb-surface))}
 .rb-done {opacity:.5}
-.rb-new {outline:3px solid #fff;outline-offset:1px}
+.rb-new {outline:3px solid var(--gbb-ink);outline-offset:1px}
 .st-key-rooms_day button p, .st-key-rooms_cancel button p {font-size:1.15rem;font-weight:750}
 [class*="st-key-rooms_book_"] button p {font-size:1.35rem;font-weight:800}
 [data-testid="stDialog"] h2 {font-size:1.9rem !important;font-weight:800}
-[data-testid="stDialog"] label p {font-size:1.15rem;font-weight:750;color:#fff}
+[data-testid="stDialog"] label p {font-size:1.15rem;font-weight:750;color:var(--gbb-ink)}
 [data-testid="stDialog"] input, [data-testid="stDialog"] [data-baseweb="select"] div, [data-testid="stDialog"] button p,
 [data-testid="stDialog"] [role="radiogroup"] p {font-size:1.15rem}
 .st-key-rooms_bk_go button p, .st-key-rooms_cx_go button p {font-size:1.35rem;font-weight:800}

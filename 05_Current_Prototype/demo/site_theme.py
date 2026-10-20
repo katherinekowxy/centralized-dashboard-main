@@ -1,14 +1,16 @@
-"""Site look for the 55-inch TV: GBTB's report colours on white, big type, colour only where something needs attention.
+"""Site look for the 55-inch TV: Gardens by the Bay grey and pink on white, big type, colour only where something
+needs attention.
 
-Dan, 13 October 2026, approving the redesign: the screen is "55 inch tv", the colour scheme is GBTB's Aging Faults
-report (plum on white, sampled: plum #420C52, mid purple #663B73, cyan #7DD0E4 for charts), "healthy assets one
-small green dot in the corner", "idle also one blue dot", "keep the maintainence cones", "for warning and faulty,
-red banner is fine" (Warning keeps its amber so the two stay apart), "reduce the number of boxes but make sure the
-assets are segregated properly". Zones are separated by a plum header bar and white space, not by borders.
+Dan, 13 October 2026, approving the redesign: the screen is "55 inch tv", "healthy assets one small green dot in the
+corner", "idle also one blue dot", "keep the maintainence cones", "for warning and faulty, red banner is fine"
+(Warning keeps its amber so the two stay apart), "reduce the number of boxes but make sure the assets are segregated
+properly". Zones are separated by a header bar and white space, not by borders.
 
-Status colours are Dan's (asset_state.COLOUR), deepened only where white needs it: the green dot is #16A34A (#22C55E
-is 2.3:1 on white, below the 3:1 a small graphic needs) and the red banner #DC2626 (white text 4.8:1). Amber and grey
-banners carry dark text. Pilot: the Asset dashboard and Asset schematic; the other tabs follow once Dan approves.
+20 October 2026: the interim plum palette (from the Aging Faults report) is replaced by the brand tokens in
+demo/brand.py. Header bars are brand grey with white text (7.1:1); pink is reserved for identity, never status.
+
+Status colours are Dan's (asset_state.COLOUR), deepened only where white needs it (brand.ASSET_STATE): the green dot
+is #15803D and the red banner #B91C1C (white text 6.5:1). Amber and grey banners carry dark text.
 """
 
 from __future__ import annotations
@@ -16,11 +18,13 @@ from __future__ import annotations
 import html
 from typing import Any
 
-PLUM, PLUM_2, LILAC, CYAN = "#420C52", "#663B73", "#E3DBE5", "#7DD0E4"
-INK, INK_2, LINE, ZEBRA = "#1A1A1A", "#4A4A4A", "#D9D4DB", "#F3F2F3"
-DOT = {"operational": "#16A34A", "idle": "#2563EB"}
-BANNER = {"down": ("#DC2626", "#FFFFFF", "Down"), "warning": ("#F59E0B", "#1A1A1A", "Warning"),
-          "offline": ("#9CA3AF", "#1A1A1A", "Offline")}
+from demo import brand
+
+PLUM, PLUM_2, LILAC = brand.GREY, brand.INK_2, "#E4E6E8"  # names kept for callers: header bar, its text tint
+INK, INK_2, LINE, ZEBRA = brand.INK, brand.INK_2, brand.LINE, brand.SURFACE_2
+DOT = {"operational": brand.ASSET_STATE["operational"][0], "idle": brand.ASSET_STATE["idle"][0]}
+BANNER = {"down": (brand.ASSET_STATE["down"][0], "#FFFFFF", "Down"), "warning": ("#F59E0B", brand.INK, "Warning"),
+          "offline": ("#9CA3AF", brand.INK, "Offline")}
 NO_SUPPLY = "nosupply"
 CARD_MARK = {"down": "#EF4444", "warning": "#F59E0B", "offline": "#9CA3AF", "idle": "#60A5FA", "operational": "#4ADE80"}
 
@@ -33,9 +37,9 @@ html {{font-size:20px}}  /* a 55-inch TV seen from 2-3 m: nothing on these pages
 .stApp, [data-testid="stHeader"], [data-testid="stMain"] {{background:#FFFFFF !important}}
 .sd-head {{display:none}}  /* the page draws a report-style header instead */
 .block-container {{padding-top:1.4rem !important}}
-.tv {{color:{INK};font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}}
+.tv {{color:{INK};font-family:var(--gbb-font)}}
 .tv-top {{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.8rem 2rem;margin:0 0 .5rem}}
-.tv-brand {{font-size:1rem;font-weight:700;color:{PLUM};letter-spacing:.02em}}
+.tv-brand {{font-size:1rem;font-weight:700;color:{brand.PINK_DARK};letter-spacing:.02em}}
 .tv-title {{font-size:2.4rem;font-weight:800;line-height:1.05;color:{INK};padding-bottom:.25rem;border-bottom:3px solid {LINE}}}
 .tv-updated {{font-size:1rem;color:{INK_2};margin-top:.35rem}}
 .tv-meta {{font-size:1rem;color:{INK_2};margin:0 0 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.3rem 1.3rem}}
@@ -64,7 +68,7 @@ html {{font-size:20px}}  /* a 55-inch TV seen from 2-3 m: nothing on these pages
 .tv-ban.tv-nosupply {{background:#FFFFFF !important;color:#B91C1C !important;box-shadow:inset .45rem 0 0 #DC2626;padding-left:1.05rem}}
 .tv-parent {{font-size:1.25rem;font-weight:700}}
 .tv-nc {{font-size:1rem;font-weight:600;color:{INK_2}}}
-.tv-feeds {{margin:0 0 0 1rem;padding:0 0 0 .55rem;border-left:3px solid #B9B2BD}}
+.tv-feeds {{margin:0 0 0 1rem;padding:0 0 0 .55rem;border-left:3px solid {brand.LINE_STRONG}}}
 .tv-feeds.tv-dead {{border-left:3px dashed #DC2626}}
 .tv-branch + .tv-branch, .tv-branch + .tv-row, .tv-row + .tv-branch {{margin-top:.5rem}}
 .tv-cone {{width:1.5rem;height:1.5rem;flex:none;animation:tv-pulse 1.8s ease-in-out infinite}}

@@ -1,9 +1,10 @@
 [theme]
-base = "dark"
-primaryColor = "#83aef3"
-backgroundColor = "#0b1524"
-secondaryBackgroundColor = "#142337"
-textColor = "#edf3f7"
+# Gardens by the Bay tokens (demo/brand.py): white background, brand pink for primary actions and selection only.
+base = "light"
+primaryColor = "#E2124F"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F6F7"
+textColor = "#24272A"
 font = "sans serif"
 
 [browser]

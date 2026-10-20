@@ -23,65 +23,65 @@ from demo.reporting import build_report, report_markdown, request_ai_report
 from demo.chart_scale import calm_range
 from demo.schematics import asset_schematic
 from demo.signals import STATUS_ORDER, asset_status, point_name, point_signals
-from demo import exploratory_view
+from demo import brand, exploratory_view
 from demo.platform_references import load_platforms
 
 
-INK, MUTED, TEAL, AMBER, CORAL, BLUE = "#e9f0f5", "#9baebc", "#46d7c4", "#f4b864", "#f0807e", "#83aef3"
-GRID, PAPER, PLOT = "#294056", "#0d1928", "#122237"
-IDLE = "#6b7f92"
+INK, MUTED, TEAL, AMBER, CORAL, BLUE = (brand.INK, brand.INK_3, brand.DIAGNOSTIC["ok"][0], brand.CHART["gap"],
+                                        brand.DIAGNOSTIC["alert"][0], brand.CHART["reading"])
+GRID, PAPER, PLOT = brand.CHART["grid"], brand.CHART["paper"], brand.CHART["plot"]
+IDLE = brand.DIAGNOSTIC["idle"][0]
 STATUS_COLOR = {"alert": CORAL, "warn": AMBER, "ok": TEAL, "idle": IDLE}
-STATUS_WORD = {"alert": "Detector finding", "ok": "Checked, no finding", "idle": "Not assessed or no data"}
-st.set_page_config(page_title="SignalDesk | Engineering evidence", page_icon="◆", layout="wide")
-st.markdown("""
+STATUS_WORD = {key: word for key, (_, word, _) in brand.DIAGNOSTIC.items()}
+st.set_page_config(page_title="Gardens by the Bay | Facilities IOC", page_icon="◆", layout="wide")
+st.markdown(brand.style() + """
 <style>
 .block-container {max-width:1380px;padding-top:3.6rem;padding-bottom:2rem}
-[data-testid="stSidebar"] {background:#101f31}
 .sd-head {display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap;margin:.15rem 0}
-.sd-title {font-size:2rem;font-weight:750;letter-spacing:-.04em;line-height:1.08}
-.sd-badge {color:#c7d6e1;border:1px solid #37556b;border-radius:99px;padding:.18rem .65rem;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
-[data-testid="stBaseButton-primary"], [data-testid="stBaseButton-primary"] p {color:#0b1524 !important}
-.sd-sub {color:#9baebc;font-size:.82rem;margin:.2rem 0 1rem}
-.sd-section {font-size:1.08rem;font-weight:700;margin:.8rem 0 .35rem;letter-spacing:-.015em}
-.sd-muted {color:#8a9eae;font-size:.76rem}
-.sd-card {background:#15263b;border:1px solid #294056;border-radius:.7rem;padding:.8rem 1rem;min-height:6rem}
-.sd-card-label {color:#9baebc;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.sd-title {font-size:2rem;font-weight:750;letter-spacing:-.03em;line-height:1.08;color:var(--gbb-ink)}
+.sd-badge {color:var(--gbb-ink-2);border:1.5px dashed var(--gbb-ink-3);border-radius:.35rem;padding:.12rem .55rem;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+[data-testid="stBaseButton-primary"], [data-testid="stBaseButton-primary"] p {color:#fff !important}
+.sd-sub {color:var(--gbb-ink-2);font-size:.82rem;margin:.2rem 0 1rem}
+.sd-section {font-size:1.08rem;font-weight:700;margin:.8rem 0 .35rem;letter-spacing:-.01em;color:var(--gbb-ink)}
+.sd-muted {color:var(--gbb-ink-3);font-size:.76rem}
+.sd-card {background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.8rem 1rem;min-height:6rem}
+.sd-card-label {color:var(--gbb-ink-3);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
 .sd-card-value {font-size:1.7rem;font-weight:750;line-height:1.2;margin:.15rem 0}
-.sd-card-foot {color:#9baebc;font-size:.74rem}
-.sd-chip {display:inline-flex;align-items:center;gap:.35rem;border:1px solid #37556b;border-radius:99px;padding:.12rem .55rem;margin:.2rem .3rem .2rem 0;color:#c7d6e1;font-size:.72rem}
+.sd-card-foot {color:var(--gbb-ink-3);font-size:.74rem}
+.sd-chip {display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--gbb-line-strong);border-radius:99px;padding:.12rem .55rem;margin:.2rem .3rem .2rem 0;color:var(--gbb-ink-2);font-size:.72rem}
 .sd-dot {display:inline-block;width:.62rem;height:.62rem;border-radius:50%;flex:none;vertical-align:middle}
 .sd-dot-lg {width:.85rem;height:.85rem}
-.sd-dot-alert {background:#f0807e;box-shadow:0 0 0 3px rgba(240,128,126,.22)}
-.sd-dot-warn {background:#f4b864}
-.sd-dot-ok {background:#46d7c4}
-.sd-dot-idle {background:transparent;border:2px solid #6b7f92}
+.sd-dot-alert {background:#B91C1C;box-shadow:0 0 0 3px rgba(185,28,28,.18)}
+.sd-dot-warn {background:#B45309}
+.sd-dot-ok {background:#0F766E}
+.sd-dot-idle {background:transparent;border:2px solid #8A8F93}
 .sd-tally {display:flex;gap:.6rem;flex-wrap:wrap;margin:.2rem 0 1rem}
-.sd-tally > span {display:inline-flex;align-items:center;gap:.5rem;background:#13233a;border:1px solid #294056;border-radius:.6rem;padding:.45rem .8rem;font-size:.86rem;color:#c7d6e1}
-.sd-tally b {font-size:1.15rem;color:#e9f0f5}
+.sd-tally > span {display:inline-flex;align-items:center;gap:.5rem;background:var(--gbb-surface-2);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.45rem .8rem;font-size:.86rem;color:var(--gbb-ink-2)}
+.sd-tally b {font-size:1.15rem;color:var(--gbb-ink)}
 .sd-asset-id {display:flex;align-items:center;gap:.55rem;font-size:1.25rem;font-weight:750;letter-spacing:-.02em}
-.sd-asset-name {color:#9baebc;font-size:.8rem;margin:.05rem 0 .6rem 1.4rem}
-.sd-headline {font-size:.95rem;font-weight:650;margin:0 0 .55rem;color:#e9f0f5}
+.sd-asset-name {color:var(--gbb-ink-3);font-size:.8rem;margin:.05rem 0 .6rem 1.4rem}
+.sd-headline {font-size:.95rem;font-weight:650;margin:0 0 .55rem;color:var(--gbb-ink)}
 .sd-pts {display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin:0 0 .75rem}
-.sd-pt {display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:#c7d6e1}
-.sd-pt-flag {color:#e9f0f5;font-weight:650}
-.sd-foot {color:#8a9eae;font-size:.72rem;line-height:1.55;border-top:1px solid #22384d;padding-top:.5rem;margin-bottom:.35rem}
-[class*="st-key-fleet-alert"] {border-color:#f0807e !important;box-shadow:inset 3px 0 0 #f0807e}
-[class*="st-key-fleet-warn"] {border-color:#8b673d !important;box-shadow:inset 3px 0 0 #f4b864}
+.sd-pt {display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--gbb-ink-2)}
+.sd-pt-flag {color:var(--gbb-ink);font-weight:650}
+.sd-foot {color:var(--gbb-ink-3);font-size:.72rem;line-height:1.55;border-top:1px solid var(--gbb-line);padding-top:.5rem;margin-bottom:.35rem}
+[class*="st-key-fleet-alert"] {border-color:#B91C1C !important;box-shadow:inset 3px 0 0 #B91C1C}
+[class*="st-key-fleet-warn"] {border-color:#B45309 !important;box-shadow:inset 3px 0 0 #B45309}
 .sd-tiles {display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;margin:.2rem 0 .4rem}
-.sd-tile {background:#13233a;border:1px solid #294056;border-radius:.65rem;padding:.65rem .8rem}
-.sd-tile-alert {border-color:#f0807e}
-.sd-tile-warn {border-color:#8b673d}
-.sd-tile-name {display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:#c7d6e1}
+.sd-tile {background:var(--gbb-surface);border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);padding:.65rem .8rem}
+.sd-tile-alert {border-color:#B91C1C}
+.sd-tile-warn {border-color:#B45309}
+.sd-tile-name {display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:var(--gbb-ink-2)}
 .sd-tile-value {font-size:1.45rem;font-weight:750;letter-spacing:-.02em;margin:.2rem 0 .05rem;font-variant-numeric:tabular-nums}
-.sd-tile-value small {font-size:.78rem;font-weight:500;color:#9baebc;margin-left:.2rem}
-.sd-tile-note {font-size:.72rem;color:#8a9eae}
-.sd-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;color:#8a9eae;font-size:.72rem;margin:.1rem 0 .5rem}
+.sd-tile-value small {font-size:.78rem;font-weight:500;color:var(--gbb-ink-3);margin-left:.2rem}
+.sd-tile-note {font-size:.72rem;color:var(--gbb-ink-3)}
+.sd-legend {display:flex;flex-wrap:wrap;gap:.3rem 1rem;color:var(--gbb-ink-3);font-size:.72rem;margin:.1rem 0 .5rem}
 .sd-legend span {display:inline-flex;align-items:center;gap:.35rem}
 .sd-swatch {display:inline-block;width:.9rem;height:.55rem;border-radius:2px}
 .sd-point {display:flex;align-items:center;gap:.45rem;font-size:.92rem;font-weight:650}
-.sd-point small {font-size:.75rem;font-weight:500;color:#9baebc;margin-left:.15rem}
-.sd-point-meta {color:#9baebc;font-size:.76rem;margin:.1rem 0 .3rem}
-div[data-testid="stPlotlyChart"] {border:1px solid #294056;border-radius:.7rem;overflow:hidden}
+.sd-point small {font-size:.75rem;font-weight:500;color:var(--gbb-ink-3);margin-left:.15rem}
+.sd-point-meta {color:var(--gbb-ink-3);font-size:.76rem;margin:.1rem 0 .3rem}
+div[data-testid="stPlotlyChart"] {border:1px solid var(--gbb-line);border-radius:var(--gbb-radius);overflow:hidden}
 </style>""", unsafe_allow_html=True)
 
 
@@ -115,7 +115,7 @@ def chart_layout(fig: go.Figure, *, height: int = 270, x_title: str = "", y_titl
     fig.update_layout(height=height, margin={"l": 38, "r": 15, "t": 22, "b": 40}, paper_bgcolor=PAPER, plot_bgcolor=PLOT,
                       font={"color": INK, "size": 12}, legend={"orientation": "h", "y": 1.18, "x": 0, "font": {"size": 11}},
                       xaxis={"title": x_title, "gridcolor": GRID}, yaxis={"title": y_title, "gridcolor": GRID},
-                      hoverlabel={"bgcolor": "#20354a", "font_color": INK})
+                      hoverlabel={"bgcolor": brand.CHART["hover"], "font_color": INK, "bordercolor": brand.LINE_STRONG})
 
 
 def fingerprint(dataset: dict, scenario_id: str, seed: int) -> str:
@@ -703,6 +703,7 @@ def asset_page(run: dict, asset_id: str) -> None:
                                   point_colors=colors, height=330, show_labels=st.session_state.get("schematic_labels", False))
             fig.update_layout(title=None, margin={"l": 0, "r": 0, "t": 0, "b": 0})
             st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
+            st.caption("Illustrative 3D schematic: not to scale, and not a CAD, BIM or installation drawing.")
             with st.expander("Schematic controls", expanded=False):
                 st.selectbox("Schematic view", ("Isometric", "Top", "Side"), key="schematic_view")
                 st.selectbox("Highlight sensor", ["All sensors", *bucket["points"].keys()], key=f"schematic_sensor_{asset_id}",
@@ -959,7 +960,7 @@ SITE_CSS = """
 html {font-size:18px}  /* Site pages are read by older staff (Dan, 12 October 2026): every rem is 12.5 % bigger */
 .block-container {max-width:none !important;padding:2.6rem 1.6rem 1rem !important}  /* the whole screen, little scrolling */
 .sd-head {margin:0 0 .5rem}
-.sd-page {font-size:1.35rem;font-weight:750;color:#fff;margin-left:.2rem}
+.sd-page {font-size:1.35rem;font-weight:750;color:var(--gbb-ink);margin-left:.2rem}
 """
 
 
