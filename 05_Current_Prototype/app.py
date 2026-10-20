@@ -1025,15 +1025,25 @@ def site_page(page: navigation.Page) -> None:
 
 
 def overview_page() -> None:
-    """Landing page: where each kind of question is answered. The site summary above it arrives in stage 3."""
+    """Landing page: what needs attention, then one panel per kind of fact, each linking to the page that owns it."""
+    from demo import site_overview
+
     page_header(navigation.PAGE["overview"])
-    areas = []
-    for area in navigation.AREAS[1:]:
-        items = "".join(f'<li><a href="?view={page.key}" target="_self">{esc(page.label)}</a> · {esc(page.summary)}'
-                        f'<span>{esc(page.status)}</span></li>'
-                        for page in [*navigation.area_pages(area), *navigation.area_pages(area, secondary=True)])
-        areas.append(f'<div><h3>{esc(area)}</h3><ul>{items}</ul></div>')
-    st.markdown(f'<div class="ioc-dir">{"".join(areas)}</div>', unsafe_allow_html=True)
+    db = site_db()
+    if db is None:
+        st.info("The site database could not be loaded.")
+        return
+    if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
+        replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
+    st.markdown(site_overview.page_html(site_overview.summary(db, st.session_state["replay"])), unsafe_allow_html=True)
+    with st.expander("Where to find what", expanded=False):
+        areas = []
+        for area in navigation.AREAS[1:]:
+            items = "".join(f'<li><a href="?view={page.key}" target="_self">{esc(page.label)}</a> · {esc(page.summary)}'
+                            f'<span>{esc(page.status)}</span></li>'
+                            for page in [*navigation.area_pages(area), *navigation.area_pages(area, secondary=True)])
+            areas.append(f'<div><h3>{esc(area)}</h3><ul>{items}</ul></div>')
+        st.markdown(f'<div class="ioc-dir">{"".join(areas)}</div>', unsafe_allow_html=True)
 
 
 SITE_DETAILS = {  # query parameter -> (header, module, page renderer); each opens in its own tab

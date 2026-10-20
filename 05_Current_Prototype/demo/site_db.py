@@ -108,6 +108,12 @@ def as_of(path: Path | str | None = None) -> str:
     return value
 
 
+def ingest_batches(path=None) -> list[dict]:
+    """Where the site data came from: one row per seed or imported file, newest first. Read-only."""
+    return _all("SELECT batch_id, source_type, file_name, received_at, row_count FROM ingest_batches ORDER BY received_at DESC",
+                path=path)
+
+
 def zones(path=None) -> list[dict]:
     return _all("SELECT * FROM zones ORDER BY COALESCE(map_no, 99), zone_code", path=path)
 

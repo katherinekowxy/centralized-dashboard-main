@@ -20,7 +20,7 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 
 | Area | Page (`?view=`) | Shows | Data |
 | --- | --- | --- | --- |
-| Site Overview | Site overview (`overview`) | Landing page; a directory of where each question is answered (site summary arrives in stage 3) | Site |
+| Site Overview | Site overview (`overview`) | What needs attention now, asset operational state, permits, event power, diagnostics replay findings, what is coming up, and data sources; each figure comes from the page that owns it | Site + replay |
 | Site Map & PTW | PTW map (`ptw-map`) | Today's permits on a street map; click a permit for what it isolates or closes | Site |
 | Asset Health & Engineering | Fleet operational status (`asset-status`) | Operational state of every site asset by zone | Site |
 | | Electrical distribution (`electrical`) | Distribution boards and the devices downstream of a problem | Site |
