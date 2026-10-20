@@ -15,7 +15,7 @@ from streamlit.testing.v1 import AppTest
 APP = Path(__file__).resolve().parents[1] / "app.py"
 sys.path.insert(0, str(APP.parent))
 
-from demo import feedback, imports
+from demo import feedback, imports, navigation
 
 
 @pytest.fixture(autouse=True)
@@ -34,12 +34,13 @@ def _plot(at: AppTest, index: int) -> dict:
 def _diagnostics(timeout: int = 30) -> AppTest:
     """The app opens on the Site dashboards; these checks cover the Diagnostics demo area."""
     at = AppTest.from_file(str(APP), default_timeout=timeout)
-    at.session_state["area"] = "Diagnostics demo"
+    at.session_state["nav"] = "diagnostics"
     return at
 
 
 def _go(at: AppTest, page: str) -> AppTest:
-    return next(widget for widget in at.radio if widget.label == "View").set_value(page).run()
+    """Open a workbench page by its workbench name, through its sidebar button."""
+    return at.button(key=f"nav-{navigation.BY_REPLAY_PAGE[page]}").click().run()
 
 
 def test_external_references_are_separate_and_all_platforms_render() -> None:
@@ -56,8 +57,8 @@ def test_external_references_are_separate_and_all_platforms_render() -> None:
         next(widget for widget in at.selectbox if widget.label == "Platform").set_value(name).run()
         assert not at.exception
         markup = "\n".join(item.value for item in at.markdown)
-        assert "External references" in markup
-        assert "Synthetic demo" not in markup
+        assert "External reference · not integrated" in markup
+        assert "demo / synthetic" not in markup
         assert "not SignalDesk" in markup
     _go(at, "Overview")
     assert not at.exception
@@ -67,12 +68,13 @@ def test_external_references_are_separate_and_all_platforms_render() -> None:
 def test_default_overview_is_five_asset_cards() -> None:
     at = _diagnostics().run()
     assert not at.exception
-    assert at.radio[0].value == "Overview"
-    assert at.radio[0].options == ["Overview", "Asset overview", "Maintenance", "Investigate", "Data import", "System map", "Exploratory"]
+    assert at.session_state["nav"] == "diagnostics" and at.query_params["view"] == ["diagnostics"]
+    for key in navigation.BY_REPLAY_PAGE.values():
+        assert at.button(key=f"nav-{key}")
     assert not at.get("plotly_chart")  # Overview is status dots only; graphs live on the asset page.
     assert not at.dataframe  # Detail tables stay off the landing view.
     markup = "\n".join(item.value for item in at.markdown)
-    assert "SignalDesk" in markup and "Synthetic demo" in markup
+    assert "Diagnostics replay · demo / synthetic scenario" in markup
     assert "Open jobs" in markup and "Detector not assessed" in markup
     assert "<b>1</b> need attention" in markup and "Sustained rise in earth leakage" in markup
     # Attention first: DB-01's card and button precede the in-range assets.
@@ -94,7 +96,7 @@ def test_scenario_and_asset_switch_update_selected_charts() -> None:
     assert "Normal daily cycle" in "\n".join(item.value for item in at.markdown)
     next(button for button in at.button if button.label == "Open AHU-01").click().run()
     assert not at.exception
-    assert at.radio[0].value == "Asset overview"
+    assert at.session_state["nav"] == "asset-engineering"
     assert next(widget for widget in at.selectbox if widget.label == "Asset").value == "AHU-01"
     assert "Detector not assessed" in "\n".join(item.value for item in at.markdown)
     schematic = _plot(at, 0)

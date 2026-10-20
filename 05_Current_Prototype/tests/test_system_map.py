@@ -79,11 +79,8 @@ def test_compact_cards_keep_the_description_behind_details() -> None:
 
 def test_system_map_tab_renders_when_navigation_is_wired() -> None:
     at = AppTest.from_file(str(APP), default_timeout=60)
-    at.session_state["area"] = "Diagnostics demo"
     at.run()
-    if "System map" not in at.radio[0].options:
-        pytest.skip("navigation entry not wired yet")
-    at.radio[0].set_value("System map").run()
+    at.button(key="nav-architecture").click().run()
     assert not at.exception
     markup = "\n".join(item.value for item in at.markdown)
     for layer in system_map.LAYERS:

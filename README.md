@@ -16,22 +16,26 @@ Then open <http://localhost:8501>. On Windows, `05_Current_Prototype\start.cmd` 
 
 ## What to look at
 
-The sidebar has two areas.
+The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigation.py`). Each page has its own address, `?view=<key>`, so you can bookmark it. Every page header names its data source and which kind of status it shows.
 
-**Site** is the newer work:
+| Area | Page (`?view=`) | Shows | Data |
+| --- | --- | --- | --- |
+| Site Overview | Site overview (`overview`) | Landing page; a directory of where each question is answered (site summary arrives in stage 3) | Site |
+| Site Map & PTW | PTW map (`ptw-map`) | Today's permits on a street map; click a permit for what it isolates or closes | Site |
+| Asset Health & Engineering | Fleet operational status (`asset-status`) | Operational state of every site asset by zone | Site |
+| | Electrical distribution (`electrical`) | Distribution boards and the devices downstream of a problem | Site |
+| | Diagnostic findings (`diagnostics`) | Rule-based detector findings for the monitored demonstration assets | Replay |
+| | Engineering measurements (`asset-engineering`) | Earth leakage, trips, voltage, current and process trends for one asset; illustrative 3D schematic | Replay |
+| Faults & Investigations | Work orders & fault trends (`work-orders`) | 90-day CMMS history, recurring faults, work-order status | Replay |
+| | Investigation queue (`investigations`) | Detector cases, evidence, reviews, data quality, exports | Replay |
+| Operations & Planning | Event power (`event-power`) | OG boxes, CEEform sockets and simulated event loads | Site |
+| | Operational calendar (`calendar`) | This week's permits, events and maintenance, with clashes marked | Site |
+| Other tools | Meeting-room booking (`rooms`) | Two room calendars with booking and cancelling | Site |
+| Administration & Integrations | Asset register & data import (`assets-import`) | Register an asset and validate a vendor CSV | Replay |
+| | Platform architecture (`architecture`) | How data reaches the application, live versus planned | Replay |
+| | External platform research (`research`) | Vendor reference material; none of it is integrated | Reference |
 
-| Tab | Shows |
-| --- | --- |
-| PTW dashboard | Today's permits to work on a street map. Each zone is filled in its contractor's colour; click a permit for what it isolates or closes. |
-| Asset dashboard | Every asset by zone, in the TV design: a small dot when healthy, a banner when Down, Warning or Offline, and a cone for maintenance. |
-| Asset schematic | Distribution boards, showing only the devices that need attention under their parent DB. |
-| Event power | OG boxes with their CEEform sockets and live (simulated) event loads. |
-| Calendar overview | This week's permits, event orders and maintenance, with clashes marked. |
-| Meeting rooms | Two room calendars side by side, with booking and cancelling. |
-
-Every page uses one light design with Gardens by the Bay colours (`05_Current_Prototype/demo/brand.py`).
-
-**Diagnostics demo** is the earlier prototype: replayed sensor scenarios, rule-based diagnostic dots, asset pages, maintenance history and an evidence review. [05_Current_Prototype/README.md](05_Current_Prototype/README.md) walks through it.
+**Site** pages read the synthetic site database. **Replay** pages read a replayed synthetic sensor scenario with its own five demonstration assets ([05_Current_Prototype/README.md](05_Current_Prototype/README.md) walks through it). The two datasets do not share asset IDs, so they are kept on separate pages. Every page uses one light design with Gardens by the Bay colours (`05_Current_Prototype/demo/brand.py`).
 
 ## Tests
 

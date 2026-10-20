@@ -141,7 +141,7 @@ def board_html(data: dict) -> str:
                                    ("offline", "Offline"), ("maintenance", "Maintenance"))]
     cards = site_theme.cards_html([card for card in counts if card[1]] + [("DBs all normal", len(hidden), site_theme.CARD_MARK["operational"])])
     key = site_theme.key_html(("down", "warning", "offline"), cone=True, no_supply=True)
-    header = site_theme.header_html("Asset schematic", sgt(data["as_of"], "%d %b %Y, %H:%M"), cards, key)
+    header = site_theme.header_html("Electrical distribution", sgt(data["as_of"], "%d %b %Y, %H:%M"), cards, key)
     if not zones:
         body = (f'<div class="tv-clear">All assets normal<small>{len(data["rows"])} assets on '
                 f'{sum(row["asset_type"] == "DB" for row in data["rows"].values())} DBs checked</small></div>')

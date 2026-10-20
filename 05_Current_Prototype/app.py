@@ -23,7 +23,7 @@ from demo.reporting import build_report, report_markdown, request_ai_report
 from demo.chart_scale import calm_range
 from demo.schematics import asset_schematic
 from demo.signals import STATUS_ORDER, asset_status, point_name, point_signals
-from demo import brand, exploratory_view
+from demo import brand, exploratory_view, navigation
 from demo.platform_references import load_platforms
 
 
@@ -459,8 +459,8 @@ WINDOW_OPTIONS = ("Last 6 hours", "Last 24 hours", "Full replay (48 hours)", "90
 
 
 def navigate(page: str, asset_id: str | None = None) -> None:
-    """Button callback: update navigation before sidebar widgets are created."""
-    st.session_state["page"] = page
+    """Button callback: open a diagnostics workbench page (by its workbench name) before the sidebar is drawn."""
+    st.session_state["nav"] = navigation.BY_REPLAY_PAGE[page]
     if asset_id is not None:
         st.session_state["selected_asset"] = asset_id
         st.session_state["asset_picker"] = asset_id
@@ -931,10 +931,6 @@ def system_map_page(run: dict) -> None:
                 f'<div class="sd-muted">{esc(system_map.RUNTIME)}</div>', unsafe_allow_html=True)
 
 
-SITE_PAGES = {"PTW dashboard": "ptw_dashboard", "Asset dashboard": "asset_dashboard", "Asset schematic": "asset_schematic",
-              "Event power": "event_power", "Calendar overview": "calendar_overview", "Meeting rooms": "room_booking"}
-
-
 def site_module(name: str):
     """A site module, or None until it lands, so the app stays runnable while Claude and Codex build in parallel."""
     import importlib
@@ -963,20 +959,81 @@ html {font-size:18px}  /* Site pages are read by older staff (Dan, 12 October 20
 .sd-page {font-size:1.35rem;font-weight:750;color:var(--gbb-ink);margin-left:.2rem}
 """
 
+SHELL_CSS = """
+.ioc-brand {display:flex;align-items:center;gap:.55rem;margin:0 0 .4rem;padding:0 0 .7rem;border-bottom:1px solid var(--gbb-line)}
+.ioc-brand i {flex:none;width:.35rem;height:2.2rem;border-radius:2px;background:var(--gbb-pink)}
+.ioc-brand b {display:block;font-size:16px;font-weight:750;color:var(--gbb-ink);line-height:1.15}
+.ioc-brand small {display:block;font-size:12.5px;color:var(--gbb-ink-2)}
+.ioc-area {font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gbb-ink-3);margin:0;padding:18px 0 6px 10px}
+.st-key-ioc-nav, .st-key-ioc-nav [data-testid="stVerticalBlock"] {gap:.05rem !important}
+.st-key-ioc-nav [data-testid="stMarkdownContainer"] {margin-bottom:0 !important}
+[class*="st-key-nav-"] button {width:100%;justify-content:flex-start !important;min-height:32px;padding:4px 10px !important;border-radius:6px}
+[class*="st-key-nav-"] button > div {justify-content:flex-start;width:100%}
+[class*="st-key-nav-"] [data-testid="stBaseButton-tertiary"]:hover {background:var(--gbb-surface-3)}
+[class*="st-key-nav-"] button p {font-size:14.5px;text-align:left}
+[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] {background:var(--gbb-pink-tint) !important;border:none !important;
+  box-shadow:inset 3px 0 0 var(--gbb-pink)}
+[class*="st-key-nav-"] [data-testid="stBaseButton-primary"] p {color:var(--gbb-pink-dark) !important;font-weight:700}
+.ioc-head {margin:0 0 .9rem;padding:0 0 .6rem;border-bottom:1px solid var(--gbb-line)}
+.ioc-crumb {font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gbb-ink-3)}
+.ioc-title {font-size:1.75rem;font-weight:750;letter-spacing:-.02em;line-height:1.15;color:var(--gbb-ink);margin:.1rem 0 .35rem}
+.ioc-meta {display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .8rem;font-size:.8rem;color:var(--gbb-ink-2)}
+.ioc-meta em {font-style:normal;color:var(--gbb-ink-3)}
+.ioc-dir {display:grid;grid-template-columns:repeat(auto-fill,minmax(21rem,1fr));gap:1rem 1.4rem;margin:.4rem 0 1rem}
+.ioc-dir h3 {font-size:1rem !important;font-weight:750;margin:0 0 .35rem !important;padding:0 !important;color:var(--gbb-ink)}
+.ioc-dir ul {list-style:none;margin:0;padding:0}
+.ioc-dir li {margin:0 0 .45rem;font-size:.86rem;line-height:1.35;color:var(--gbb-ink-2)}
+.ioc-dir li a {font-weight:650;text-decoration:none}
+.ioc-dir li span {display:block;font-size:.76rem;color:var(--gbb-ink-3)}
+"""
+
+
+def source_badge(page: navigation.Page) -> str:
+    if page.source == navigation.REFERENCE:
+        return '<span class="gbb-source" style="--b:dotted">External reference · not integrated</span>'
+    return brand.demo_badge(navigation.SOURCE_LABEL[page.source]) if page.source != navigation.NONE else ""
+
+
+def page_header(page: navigation.Page, title: bool = True) -> None:
+    """Where you are, where the numbers come from, and which status vocabulary this page uses."""
+    st.markdown(f'<div class="ioc-head"><div class="ioc-crumb">{esc(page.area)}</div>'
+                + (f'<div class="ioc-title">{esc(page.label)}</div>' if title else "")
+                + f'<div class="ioc-meta">{source_badge(page)}<span><em>Shows:</em> {esc(page.status)}</span></div></div>',
+                unsafe_allow_html=True)
+
 
 def site_header(name: str) -> None:
+    """Header of a detail page opened in its own tab (?ptw=, ?asset=, ?eo=, ?wo=)."""
+    st.markdown(f"<style>{SITE_CSS}{SHELL_CSS}</style>", unsafe_allow_html=True)
+    st.markdown(f'<div class="ioc-head"><div class="ioc-crumb">Gardens by the Bay · Facilities IOC</div>'
+                f'<div class="ioc-title">{esc(name)}</div>'
+                f'<div class="ioc-meta">{brand.demo_badge(navigation.SOURCE_LABEL[navigation.SITE])}</div></div>',
+                unsafe_allow_html=True)
+
+
+OWN_TITLE = {"asset_dashboard", "asset_schematic"}  # these draw their own TV-scale title and counts
+
+
+def site_page(page: navigation.Page) -> None:
     st.markdown(f"<style>{SITE_CSS}</style>", unsafe_allow_html=True)
-    st.markdown(f'<div class="sd-head"><div class="sd-title">SignalDesk</div><span class="sd-badge">Bay South</span>'
-                f'<span class="sd-page">{esc(name)}</span></div>', unsafe_allow_html=True)
-
-
-def site_page(name: str) -> None:
-    site_header(name)
-    db, module = site_db(), site_module(SITE_PAGES[name])
+    page_header(page, title=page.module not in OWN_TITLE)
+    db, module = site_db(), site_module(page.module)
     if db is None or module is None:
-        st.info(f"{name} is being built; it appears here when {'the site database' if db is None else 'the dashboard'} lands.")
+        st.info(f"{page.label} is unavailable: {'the site database' if db is None else 'its module'} could not be loaded.")
         return
     module.render(db)
+
+
+def overview_page() -> None:
+    """Landing page: where each kind of question is answered. The site summary above it arrives in stage 3."""
+    page_header(navigation.PAGE["overview"])
+    areas = []
+    for area in navigation.AREAS[1:]:
+        items = "".join(f'<li><a href="?view={page.key}" target="_self">{esc(page.label)}</a> · {esc(page.summary)}'
+                        f'<span>{esc(page.status)}</span></li>'
+                        for page in [*navigation.area_pages(area), *navigation.area_pages(area, secondary=True)])
+        areas.append(f'<div><h3>{esc(area)}</h3><ul>{items}</ul></div>')
+    st.markdown(f'<div class="ioc-dir">{"".join(areas)}</div>', unsafe_allow_html=True)
 
 
 SITE_DETAILS = {  # query parameter -> (header, module, page renderer); each opens in its own tab
@@ -998,9 +1055,42 @@ def site_detail(kind: str, record_id: str) -> None:
         getattr(module, renderer)(record_id, db)
 
 
-def keep_area() -> None:
-    if st.session_state.get("area") is None:  # clicking the selected segment would otherwise clear it
-        st.session_state["area"] = st.session_state.get("area_last", "Site")
+def open_page(key: str) -> None:
+    """Navigation button callback."""
+    st.session_state["nav"] = key
+
+
+def current_page() -> navigation.Page:
+    """The page in session state, following ?view= on a fresh load or when the URL is changed by hand."""
+    asked = st.query_params.get("view")
+    if "nav" not in st.session_state:
+        st.session_state["nav"] = navigation.resolve(asked)
+    elif asked in navigation.PAGE and asked != st.session_state.get("nav_applied"):
+        st.session_state["nav"] = asked
+    key = navigation.resolve(st.session_state["nav"])
+    st.session_state["nav"] = st.session_state["nav_applied"] = key
+    if st.query_params.get("view") != key:
+        st.query_params["view"] = key
+    return navigation.PAGE[key]
+
+
+def nav_button(page: navigation.Page, current: navigation.Page) -> None:
+    st.button(page.label, key=f"nav-{page.key}", width="stretch", on_click=open_page, args=(page.key,),
+              type="primary" if page.key == current.key else "tertiary")
+
+
+def sidebar_nav(current: navigation.Page) -> None:
+    st.markdown('<div class="ioc-brand"><i></i><div><b>Gardens by the Bay</b><small>Facilities IOC</small></div></div>',
+                unsafe_allow_html=True)
+    with st.container(key="ioc-nav"):
+        for area in navigation.AREAS:
+            st.markdown(f'<div class="ioc-area">{esc(area)}</div>', unsafe_allow_html=True)
+            for page in navigation.area_pages(area):
+                nav_button(page, current)
+        st.markdown('<div class="ioc-area">Other tools</div>', unsafe_allow_html=True)
+        for page in navigation.PAGES:
+            if page.secondary:
+                nav_button(page, current)
 
 
 scenario_by_id = {item["scenario_id"]: item for item in SCENARIOS}
@@ -1012,29 +1102,31 @@ if detail:
     site_detail(detail, st.query_params[detail])
     st.stop()
 
-st.session_state.setdefault("area", "Site")
+current = current_page()
+st.markdown(f"<style>{SHELL_CSS}</style>", unsafe_allow_html=True)
 with st.sidebar:
-    st.markdown("### SignalDesk")
-    area = st.segmented_control("Area", ["Site", "Diagnostics demo"], key="area", on_change=keep_area,
-                                label_visibility="collapsed") or "Site"
-    st.session_state["area_last"] = area
-    if area == "Site":
-        site_choice = st.radio("Dashboard", list(SITE_PAGES), key="site_page")
-if area == "Site":
-    site_page(site_choice)
+    sidebar_nav(current)
+if current.module:
+    site_page(current)
+    st.stop()
+if not current.replay_page:
+    overview_page()
     st.stop()
 
+# Diagnostics workbench: one replayed synthetic scenario shared by the replay-backed pages.
+page = current.replay_page
 if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
     replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
 
 with st.sidebar:
-    page = st.radio("View", ["Overview", "Asset overview", "Maintenance", "Investigate", "Data import", "System map", "Exploratory"], key="page")
     selected_asset = st.session_state.get("selected_asset", "DB-01")
+    scenario_id, seed = st.session_state["replay"]["scenario_id"], st.session_state["replay"]["seed"]
+    if page != "Exploratory":
+        st.markdown('<div class="ioc-area">Diagnostics replay</div>', unsafe_allow_html=True)
     if page in {"Asset overview", "Investigate"}:
         if st.session_state.get("asset_picker") != selected_asset:
             st.session_state["asset_picker"] = selected_asset
         selected_asset = st.selectbox("Asset", list(asset_by_id), key="asset_picker", on_change=change_asset)
-    scenario_id, seed = st.session_state["replay"]["scenario_id"], st.session_state["replay"]["seed"]
     if page != "Exploratory":
         with st.expander("Demo controls", expanded=False):
             scenario_id = st.selectbox("Scenario", list(scenario_by_id), index=list(scenario_by_id).index(st.session_state["replay"]["scenario_id"]), format_func=lambda value: scenario_by_id[value]["name"])
@@ -1044,8 +1136,7 @@ with st.sidebar:
 
 run = {**st.session_state["replay"], "imported_readings": [row for aid in asset_by_id for row in list_readings(aid)]}
 dataset, analysis = run["dataset"], run["analysis"]
-badge = "External references" if page == "Exploratory" else "Synthetic demo"
-st.markdown(f'<div class="sd-head"><div class="sd-title">SignalDesk</div><span class="sd-badge">{badge}</span></div>', unsafe_allow_html=True)
+page_header(current)
 replay_start = pd.Timestamp(dataset["metadata"]["start_at"])
 replay_end = pd.Timestamp(dataset["metadata"]["end_at"])
 if page == "Asset overview" and selected_asset not in POINTS:
@@ -1055,9 +1146,9 @@ if page == "Asset overview" and selected_asset not in POINTS:
 elif page == "Data import":
     subtitle = "Register an asset and preview a synthetic vendor CSV before saving"
 elif page == "Exploratory":
-    subtitle = "Exploratory · external platform research · reviewed 6 October 2026"
+    subtitle = "External platform research · reviewed 6 October 2026"
 elif page == "System map":
-    subtitle = "SignalDesk architecture · current components and explicitly labelled plans"
+    subtitle = "Current components and explicitly labelled plans"
 else:
     subtitle = f'{scenario_by_id[run["scenario_id"]]["name"]} · replay {replay_start:%d %b}–{replay_end:%d %b %Y} UTC · CMMS through {pd.Timestamp(run["as_of"]).strftime("%d %b %Y")}'
 st.markdown(f'<div class="sd-sub">{esc(subtitle)}</div>', unsafe_allow_html=True)

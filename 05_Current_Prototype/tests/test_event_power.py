@@ -79,7 +79,7 @@ def test_event_power_stays_off_the_asset_views_but_opens_on_the_asset_page(db) -
 def test_tab_renders_and_the_permit_page_says_the_box_has_no_supply(monkeypatch, db) -> None:
     monkeypatch.setitem(sys.modules, "demo.site_db", db)
     at = AppTest.from_file(str(APP), default_timeout=60).run()
-    next(radio for radio in at.radio if radio.label == "Dashboard").set_value("Event power").run()
+    at.button(key="nav-event-power").click().run()
     assert not at.exception
     assert "Meadow OG box 1" in "\n".join(item.value for item in at.markdown)
     permit = AppTest.from_file(str(APP), default_timeout=60)
@@ -91,5 +91,5 @@ def test_tab_renders_and_the_permit_page_says_the_box_has_no_supply(monkeypatch,
 def test_empty_database_shows_a_message(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "demo.site_db", FAKE_DB)
     at = AppTest.from_file(str(APP), default_timeout=60).run()
-    next(radio for radio in at.radio if radio.label == "Dashboard").set_value("Event power").run()
+    at.button(key="nav-event-power").click().run()
     assert not at.exception and "No OG boxes" in at.info[0].value

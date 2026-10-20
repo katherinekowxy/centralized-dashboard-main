@@ -150,7 +150,7 @@ def overview_html(data: dict[str, Any]) -> str:
     rows = data["rows"]
     cards = site_theme.cards_html([(LABEL[state], sum(row["state"] == state for row in rows), site_theme.CARD_MARK[state])
                                    for state in ("down", "warning", "offline", "idle", "operational")])
-    header = site_theme.header_html("Asset dashboard", sgt(data["as_of"], "%d %b %Y, %H:%M"), cards, site_theme.key_html())
+    header = site_theme.header_html("Fleet operational status", sgt(data["as_of"], "%d %b %Y, %H:%M"), cards, site_theme.key_html())
     grouped: dict[str, list[dict]] = {}
     for row in rows:  # rows arrive problems first
         grouped.setdefault(row["zone_code"], []).append(row)

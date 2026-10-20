@@ -100,10 +100,12 @@ def cards_html(cards: list[tuple[str, int, str | None]]) -> str:
         for label, value, mark in cards) + "</div>"
 
 
-def header_html(title: str, updated: str, cards: str, key: str = "") -> str:
-    """Title and data time on the left and count cards on the right, as in GBTB's reports; the key on a line below."""
-    return (f'<div class="tv-top"><div><div class="tv-brand">SignalDesk · Bay South</div><div class="tv-title">{esc(title)}</div>'
-            f'<div class="tv-updated">Data updated {esc(updated)} SGT · synthetic</div></div>{cards}</div>'
+def header_html(title: str, updated: str, cards: str, key: str = "", brand_line: bool = False) -> str:
+    """Title and data time on the left and count cards on the right, as in GBTB's reports; the key on a line below.
+    ``brand_line`` adds the site name above the title, for screens that show no navigation (wall displays)."""
+    brand_html = '<div class="tv-brand">Gardens by the Bay · Facilities IOC</div>' if brand_line else ""
+    return (f'<div class="tv-top"><div>{brand_html}<div class="tv-title">{esc(title)}</div>'
+            f'<div class="tv-updated">Data updated {esc(updated)} SGT · demo / synthetic data</div></div>{cards}</div>'
             + (f'<div class="tv-meta">{key}</div>' if key else ""))
 
 

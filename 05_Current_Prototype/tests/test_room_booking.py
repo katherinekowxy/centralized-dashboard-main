@@ -140,7 +140,7 @@ def test_calendar_places_bookings_by_time_and_shades_the_past() -> None:
 def test_page_shows_both_rooms_side_by_side(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "demo.site_db", FAKE_DB)
     at = AppTest.from_file(str(APP), default_timeout=60).run()
-    next(radio for radio in at.radio if radio.label == "Dashboard").set_value("Meeting rooms").run()
+    at.button(key="nav-rooms").click().run()
     assert not at.exception
     text = "\n".join(item.value for item in at.markdown)
     for room in ROOMS:
@@ -153,7 +153,7 @@ def test_booking_through_the_dialog_lands_on_the_calendar(monkeypatch, path) -> 
     site_seed.build(path, datetime.now(timezone.utc))  # the page uses the real clock
     monkeypatch.setitem(sys.modules, "demo.site_db", seeded_db(path))
     at = AppTest.from_file(str(APP), default_timeout=60).run()
-    next(radio for radio in at.radio if radio.label == "Dashboard").set_value("Meeting rooms").run()
+    at.button(key="nav-rooms").click().run()
     at.button(key="rooms_book_MR-02").click().run()
     assert not at.exception
     day = next(group for group in at.button_group if group.key == "rooms_bk_day")
@@ -178,7 +178,7 @@ def test_cancelling_through_the_dialog_frees_the_room(monkeypatch, path) -> None
     target = site_db.room_bookings(*room_booking.day_window(day), room_id="MR-01", path=path)[0]
     monkeypatch.setitem(sys.modules, "demo.site_db", seeded_db(path))
     at = AppTest.from_file(str(APP), default_timeout=60).run()
-    next(radio for radio in at.radio if radio.label == "Dashboard").set_value("Meeting rooms").run()
+    at.button(key="nav-rooms").click().run()
     days = next(group for group in at.button_group if group.key == "rooms_day")
     days.set_value(days.options[1]).run()
     at.button(key="rooms_cancel").click().run()
