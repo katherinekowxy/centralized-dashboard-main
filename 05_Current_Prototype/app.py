@@ -8,6 +8,7 @@ import json
 import csv
 import io
 from pathlib import Path
+from urllib.parse import urlencode
 from typing import Any
 
 import pandas as pd
@@ -1191,6 +1192,142 @@ def asset_overview_page() -> None:
         y.button("Open investigation queue", key="ao-open-inv", on_click=navigate, args=("Investigate", row["asset_id"]), width="stretch")
 
 
+def display_context() -> dict:
+    """Everything the TV variants show, from the modules that own it. Real permits only when the data folder is set."""
+    from datetime import datetime, timedelta
+
+    from demo import ptw_real, site_overview, sources
+    from demo.sources.locations import points as building_points
+    from demo.sources.ptw_forms import SGT, timing, unique
+
+    db = site_db()
+    if "replay" not in st.session_state or not {"history", "as_of"}.issubset(st.session_state["replay"]):
+        replay("leakage_ramp" if "leakage_ramp" in scenario_by_id else SCENARIOS[0]["scenario_id"], 42)
+    run = st.session_state["replay"]
+    cases = [case for case in run["analysis"].get("cases", []) if case.get("category") in {"condition", "trip"}]
+    ctx = {"summary": site_overview.summary(db, run), "cases": cases, "real_permits": None}
+    folder = sources.data_dir()
+    if folder is not None:
+        permits, buildings, _ = real_permits(str(folder))
+        now = datetime.now(SGT)
+        day_end = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        today = [r for r in unique(permits["records"]) if r["usable_window"] and r["start"] < day_end and r["end"] >= now]
+        points, unplaced = ptw_real.map_points(today, building_points(buildings), now)
+        states = [timing(r, now) for r in today]
+        ctx["real_permits"] = {"points": points, "counts": {"active": states.count("active"), "later": states.count("later"),
+                                                            "unplaced": len(unplaced)}}
+    return ctx
+
+
+PRESENT_CSS = """
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], [data-testid="stHeader"], [data-testid="stToolbar"],
+[data-testid="stDecoration"], [data-testid="stStatusWidget"], footer {display:none !important}
+.stApp, [data-testid="stMain"] {background:#fff !important}
+.block-container, [data-testid="stMainBlockContainer"] {padding:0 !important;max-width:none !important}
+[data-testid="stVerticalBlock"] {gap:0 !important}
+iframe[title="st.iframe"], iframe[data-testid="stIFrame"] {display:block;width:100vw !important;height:100vh !important;border:0}
+.dp-exit {position:fixed;top:6px;right:8px;z-index:1000;padding:4px 10px;border-radius:6px;background:#24272A;color:#fff !important;
+  font:600 13px/1.2 "Segoe UI",system-ui,sans-serif;text-decoration:none;opacity:0;transition:opacity .2s}
+.dp-exit:hover, .dp-exit:focus {opacity:.92}
+"""
+
+
+def presentation(keys: list[str], refresh: int) -> None:
+    """Full-screen display: one variant or the 2x2 wall. No navigation or editing controls; a hover-only link returns."""
+    import streamlit.components.v1 as components
+
+    from demo import displays
+
+    st.markdown(f"<style>{PRESENT_CSS}</style>", unsafe_allow_html=True)
+    back = {"view": "displays", **{f"s{i + 1}": key for i, key in enumerate(keys)}} if len(keys) == 4 else {"view": "displays"}
+    st.markdown(f'<a class="dp-exit" href="?{esc(urlencode(back))}" target="_self">Display management</a>', unsafe_allow_html=True)
+
+    @st.fragment(run_every=refresh or None)
+    def screen() -> None:
+        components.html(displays.document(keys, display_context(), refresh), height=1080)
+
+    screen()
+
+
+def base_url() -> str:
+    try:
+        url = str(st.context.url or "")
+    except Exception:
+        url = ""
+    return url.split("?")[0] if url else ""
+
+
+def displays_page() -> None:
+    """Assign variants to four screens, preview them, and get the bookmarkable URL for each screen and for the wall."""
+    import streamlit.components.v1 as components
+
+    from demo import displays
+
+    page_header(navigation.PAGE["displays"])
+    params = st.query_params
+    for i in range(4):
+        key = f"ds_s{i + 1}"
+        if key not in st.session_state:
+            asked = params.get(f"s{i + 1}")
+            st.session_state[key] = asked if asked in displays.VARIANTS else displays.DEFAULT_SCREENS[i]
+    if "ds_refresh" not in st.session_state:
+        st.session_state["ds_refresh"] = displays.parse_refresh(params.get("refresh", 60)) or 60
+    names = list(displays.RESOLUTIONS)
+    if "ds_res" not in st.session_state:
+        st.session_state["ds_res"] = params.get("res") if params.get("res") in names else names[0]
+
+    st.markdown("Assign a display to each 55-inch screen. Each screen gets its own bookmarkable address; the wall address shows all "
+                "four as one 2×2 picture. Displays are simplified versions of the operator pages, sized for reading at a distance.")
+    cols = st.columns(4)
+    for i, col in enumerate(cols):
+        with col:
+            st.selectbox(f"Screen {i + 1}", list(displays.VARIANTS), format_func=displays.VARIANTS.get, key=f"ds_s{i + 1}")
+    a, b, _ = st.columns([1, 1.4, 1.6])
+    with a:
+        st.selectbox("Refresh", displays.REFRESH_CHOICES, key="ds_refresh",
+                     format_func=lambda s: "No automatic refresh" if s == 0 else f"Every {s // 60} min" if s >= 60 else f"Every {s} s")
+    with b:
+        st.selectbox("Screen resolution (layout target)", names, key="ds_res", format_func=lambda k: displays.RESOLUTIONS[k][2])
+    keys = [st.session_state[f"ds_s{i + 1}"] for i in range(4)]
+    refresh = st.session_state["ds_refresh"]
+    width, height, _ = displays.RESOLUTIONS[st.session_state["ds_res"]]
+    preset = {"view": "displays", **{f"s{i + 1}": key for i, key in enumerate(keys)}, "refresh": str(refresh),
+              "res": st.session_state["ds_res"]}
+    for name, value in preset.items():
+        if st.query_params.get(name) != value:
+            st.query_params[name] = value
+
+    base = base_url()
+    urls = [f"{base}?{urlencode({'display': key, 'screen': i + 1, 'refresh': refresh})}" for i, key in enumerate(keys)]
+    wall = f"{base}?{urlencode({'wall': ','.join(keys), 'refresh': refresh})}"
+    st.markdown('<div class="sd-section">Screen previews</div>', unsafe_allow_html=True)
+    ctx = display_context()
+    preview_height = 315  # about 16:9 for a half-width column
+    for row in (0, 2):
+        cols = st.columns(2)
+        for col, i in zip(cols, (row, row + 1)):
+            with col:
+                st.markdown(f"**Screen {i + 1}** · {esc(displays.VARIANTS[keys[i]])} · "
+                            f'<a href="{esc(urls[i])}" target="_blank">Open in presentation mode</a>', unsafe_allow_html=True)
+                components.html(displays.document([keys[i]], ctx, refresh), height=preview_height)
+                st.code(urls[i], language=None)
+    st.markdown('<div class="sd-section">Combined 2×2 video wall</div>', unsafe_allow_html=True)
+    st.markdown(f'Quadrants follow screens 1–4: top left, top right, bottom left, bottom right. '
+                f'<a href="{esc(wall)}" target="_blank">Open the wall in presentation mode</a>', unsafe_allow_html=True)
+    components.html(displays.document(keys, ctx, refresh), height=630)
+    st.code(wall, language=None)
+    with st.expander("How these addresses work, and what they cannot do", expanded=False):
+        st.markdown(
+            f"- **Layout target:** {width}×{height} per screen; the wall is {2 * width}×{2 * height} when driven as one display. "
+            "Displays scale to whatever window they are shown in, so the same address works at other 16:9 resolutions.\n"
+            "- **Presentation mode** hides the navigation and every control. Hover over the top-right corner for a link back here.\n"
+            "- **Saving a layout:** this page's own address now holds the four assignments, the refresh interval and the resolution. "
+            "Bookmark it to keep the preset. Nothing is stored on a server or shared between computers, and clearing the bookmark loses it.\n"
+            "- **Refresh** re-reads the data in the open page at the chosen interval. Each screen's browser must stay open on its address.\n"
+            "- **Not available without extra infrastructure:** switching or powering the physical TVs remotely, pushing a new layout to "
+            "screens that are already open, central storage of presets, sign-in, and screen heartbeats or 'screen offline' alerts.")
+
+
 SITE_DETAILS = {  # query parameter -> (header, module, page renderer); each opens in its own tab
     "ptw": ("Permit", "ptw_dashboard", "render_ptw_page"),
     "asset": ("Asset", "asset_dashboard", "render_asset_page"),
@@ -1257,6 +1394,14 @@ if detail:
     site_detail(detail, st.query_params[detail])
     st.stop()
 
+if st.query_params.get("display") or st.query_params.get("wall"):  # presentation mode for a TV: no navigation, no controls
+    from demo import displays as _displays
+
+    asked = st.query_params.get("display")
+    presentation([asked] if asked in _displays.VARIANTS else _displays.parse_wall(st.query_params.get("wall")),
+                 _displays.parse_refresh(st.query_params.get("refresh", 0)))
+    st.stop()
+
 current = current_page()
 st.markdown(f"<style>{SHELL_CSS}</style>", unsafe_allow_html=True)
 with st.sidebar:
@@ -1265,7 +1410,7 @@ if current.module:
     site_page(current)
     st.stop()
 if not current.replay_page:
-    {"overview": overview_page, "assets": asset_overview_page}[current.key]()
+    {"overview": overview_page, "assets": asset_overview_page, "displays": displays_page}[current.key]()
     st.stop()
 
 # Diagnostics workbench: one replayed synthetic scenario shared by the replay-backed pages.

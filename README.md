@@ -32,11 +32,25 @@ The sidebar groups every page into six areas (`05_Current_Prototype/demo/navigat
 | Operations & Planning | Event power (`event-power`) | OG boxes, CEEform sockets and simulated event loads | Site |
 | | Operational calendar (`calendar`) | This week's permits, events and maintenance, with clashes marked | Site |
 | Other tools | Meeting-room booking (`rooms`) | Two room calendars with booking and cancelling | Site |
-| Administration & Integrations | Asset register & data import (`assets-import`) | Register an asset and validate a vendor CSV | Replay |
+| Administration & Integrations | Display management (`displays`) | Assign displays to the four screens, preview each screen and the 2×2 wall, and copy their addresses | Site + replay |
+| | Asset register & data import (`assets-import`) | Register an asset and validate a vendor CSV | Replay |
 | | Platform architecture (`architecture`) | How data reaches the application, live versus planned | Replay |
 | | External platform research (`research`) | Vendor reference material; none of it is integrated | Reference |
 
 **Site** pages read the synthetic site database. **Replay** pages read a replayed synthetic sensor scenario with its own five demonstration assets ([05_Current_Prototype/README.md](05_Current_Prototype/README.md) walks through it). The two datasets do not share asset IDs, so they are kept on separate pages. Every page uses one light design with Gardens by the Bay colours (`05_Current_Prototype/demo/brand.py`).
+
+## Four screens and the 2×2 video wall
+
+Open **Display management** to choose what each 55-inch screen shows. The choices are Site summary, Asset operational state, Permits to work today, Event power, Coming up and Diagnostic findings. Each screen then gets its own address to open full screen in that TV's browser:
+
+- one screen: `http://<host>:8501/?display=assets&screen=2&refresh=60`
+- the combined wall, driven as one display: `http://<host>:8501/?wall=overview,assets,permits,event-power&refresh=60` (top left, top right, bottom left, bottom right)
+
+Presentation mode hides the navigation and every control. Hover over the top-right corner for a link back to Display management. The displays are simplified versions of the operator pages, sized for 1920×1080 and laid out in proportional units, so the same address also works on a single quadrant or at other 16:9 resolutions.
+
+**What this version cannot do.** A layout is kept only in addresses: Display management writes its assignments into its own address, so bookmark it to keep a preset. Nothing is stored on a server. The app cannot switch, power or monitor the physical TVs, push a new layout to screens that are already open, or report a screen as offline. That needs display-management infrastructure that does not exist today.
+
+**Reaching the TVs.** The start scripts bind to `127.0.0.1`, so only a browser on the same computer can open these addresses. For the TV browsers to reach the app from other machines, it must be served on the network (`--server.address`). The app has no sign-in, so agree that with IT first.
 
 ## Real data (read-only)
 
