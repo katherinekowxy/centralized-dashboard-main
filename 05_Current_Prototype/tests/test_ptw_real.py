@@ -152,7 +152,8 @@ def test_page_reads_the_configured_folder_and_says_when_it_is_not_set(folder, mo
     bare.query_params["view"] = "ptw-map"
     bare.run()
     assert not bare.exception
-    assert next(control for control in bare.button_group if control.key == "ptw_source").value == "Demo site"
+    assert not any(control.key == "ptw_source" for control in bare.button_group)  # no synthetic demo to switch to
+    assert any("not configured" in item.value for item in bare.info)
 
 
 def test_permit_map_uses_site_level_ismm_export_without_guessing_buildings(tmp_path, monkeypatch) -> None:
@@ -179,7 +180,6 @@ def test_permit_map_uses_site_level_ismm_export_without_guessing_buildings(tmp_p
     at.run()
 
     assert not at.exception
-    assert next(control for control in at.button_group if control.key == "ptw_source").value == "Real permits"
     permit_table = next(frame.value for frame in at.dataframe if {"Permit", "Site"} <= set(frame.value.columns))
     assert len(permit_table) == 3
     assert "Map location" not in permit_table.columns

@@ -1010,7 +1010,6 @@ def site_header(name: str) -> None:
 OWN_TITLE: set[str] = set()  # every page now uses the shared page head
 
 
-PTW_SOURCES = ("Real permits", "Demo site")
 
 
 @st.cache_data(ttl=600, show_spinner="Reading permit files...")
@@ -1039,44 +1038,31 @@ def real_permits(_folder: str | None = None) -> tuple[dict, dict, list]:
 
 
 def ptw_page(page: navigation.Page) -> None:
-    """PTW map: imported permit forms, site-level iSMM permits, or the synthetic site demo."""
+    """PTW map from real permits only: the permit-to-work forms (the same SharePoint exports and building mapping as the
+    GBB Power BI "PTW Map" page) placed by building; failing those, iSMM permits placed by site. No synthetic demo."""
     from datetime import datetime as _datetime
 
     from demo import ptw_real, real_pages, sources
     from demo.sources.ptw_forms import SGT as _SGT
 
-    folder = sources.data_dir()
-    default = PTW_SOURCES[0] if folder else PTW_SOURCES[1]
-    choice = st.session_state.get("ptw_source") or default
-    has_ismm_permits = bool(folder and (folder / "PTW").is_dir())
-    permit_data = real_registers()["permits"] if has_ismm_permits else None
-    badge = (brand.source_badge("imported").replace("Imported file", "Imported · not live")
-             if choice == PTW_SOURCES[0] else None)
-    sub = ""
-    if folder is not None and choice == PTW_SOURCES[0]:
-        if has_ismm_permits:
-            exported = permit_data["exported"] if permit_data else None
-            sub = f"iSMM permit export · {exported:%d %b %Y %H:%M}" if exported else "iSMM permit export"
-        else:
-            modified = real_permits(str(folder))[0]["modified"]
-            sub = f"Permit-to-work forms · files updated {modified:%d %b %Y}" if modified else "Permit-to-work forms"
-    page_header(page, badge=badge, sub=sub)
-    choice = st.segmented_control("Source", PTW_SOURCES, default=default, key="ptw_source", label_visibility="collapsed") or default
-    if choice == PTW_SOURCES[1]:
-        db, module = site_db(), site_module(page.module)
-        if db is None or module is None:
-            st.info("The site database could not be loaded.")
-            return
-        module.render(db)
+    forms = sources.folder_with("PERMIT-TO-WORK")
+    ismm = sources.folder_with("PTW")
+    badge = brand.source_badge("imported").replace("Imported file", "Imported · not live")
+    if forms is not None:
+        modified = real_permits(str(forms))[0]["modified"]
+        page_header(page, badge=badge, sub=f"Permit-to-work forms · files updated {modified:%d %b %Y %H:%M}" if modified
+                    else "Permit-to-work forms")
+        ptw_real.render(forms, real_permits)
         return
-    if folder is None:
-        st.info(f"Real permit files are not configured. Set the environment variable {sources.ENV_VAR} to the folder that holds "
-                "PERMIT-TO-WORK and Building Location.xlsx, then restart the app. The synthetic site demo is still available above.")
-        return
-    if has_ismm_permits:
+    if ismm is not None:
+        permit_data = real_registers()["permits"]
+        exported = permit_data["exported"]
+        page_header(page, badge=badge, sub=f"iSMM permit export · {exported:%d %b %Y %H:%M}" if exported else "iSMM permit export")
         real_pages.permit_site_map(permit_data, _datetime.now(_SGT).date())
         return
-    ptw_real.render(folder, real_permits)
+    page_header(page)
+    st.info(f"Real permit files are not configured. Add the folder that holds PERMIT-TO-WORK and Building Location.xlsx "
+            f"(the synced SharePoint folder BI Report Dataset/GBB) to the environment variable {sources.ENV_VAR}, then restart the app.")
 
 
 @st.cache_data(ttl=600, show_spinner="Reading asset, fault and event files...")

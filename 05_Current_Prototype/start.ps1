@@ -16,8 +16,10 @@ if (Test-Path -LiteralPath $pidPath) {
 }
 $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if ($listener) { throw "Port $Port is already occupied. Use -Port with a free port." }
-if ($DataDir) {
-    if (!(Test-Path -LiteralPath $DataDir -PathType Container)) { throw "Data folder not found: $DataDir" }
+if ($DataDir) {  # several folders may be given, separated by ";" (the first is searched first)
+    foreach ($dir in ($DataDir -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+        if (!(Test-Path -LiteralPath $dir -PathType Container)) { throw "Data folder not found: $dir" }
+    }
     $env:GBB_DATA_DIR = $DataDir
 }
 $pythonPath = (Get-Command python -ErrorAction Stop).Source
