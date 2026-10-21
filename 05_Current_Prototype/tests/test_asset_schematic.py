@@ -82,7 +82,8 @@ def test_tab_renders_and_the_permit_page_names_unconnected_devices(monkeypatch) 
     at = AppTest.from_file(str(APP), default_timeout=60)
     at.query_params["all"] = "1"
     at.run()
-    at.button(key="nav-electrical").click().run()
+    at.button(key="nav-asset-status").click().run()
+    at.button_group(key="asset_view").set_value("Electrical boards").run()
     assert not at.exception
     text = "\n".join(item.value for item in at.markdown)
     assert "Kiosk outlets" in text and "Down</small><b>2</b>" in text and "Supertree lights" not in text  # idle: hidden

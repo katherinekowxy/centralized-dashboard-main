@@ -53,7 +53,7 @@ The sidebar opens on the client pages. Every page header carries a tag saying wh
 | Events calendar | Event support jobs (space, AV, kitchen and power handovers) by day | iSMM faults |
 | Display wall | Four pages arranged for a 2×2 wall of screens | Same as the pages shown |
 
-**Show internal & demo pages**, at the bottom of the sidebar, adds the engineering workbench and administration pages. They use invented data, so they are hidden from the client by default: Asset overview, Asset status, Electrical, Diagnostics, Measurements, Work orders, Investigations, Data import, Screens, Platform architecture, Platform research and Room booking.
+**Show internal & demo pages**, at the bottom of the sidebar, adds the engineering workbench and administration pages. They use invented data or demo states, so they are hidden from the client by default: Asset overview, Asset status (equipment by location from the iSMM inventories, with demo states, plus the electrical boards), Diagnostics, Measurements, Work orders, Investigations, Data import, Screens, Platform architecture, Platform research and Room booking.
 
 ### How the numbers are counted
 

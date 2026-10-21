@@ -58,11 +58,8 @@ PAGES = (
          "Operational state (site assets) and diagnostic findings (replay assets), in separate columns",
          "Which assets exist in each category, and which need attention in their own terms?"),
     Page("asset-status", "Asset status", "Asset Health & Engineering", SITE,
-         "Operational asset state: Operational, Idle, Warning, Down, Offline",
-         "Which site assets are running, idle, degraded, down or offline?", module="asset_dashboard"),
-    Page("electrical", "Electrical", "Asset Health & Engineering", SITE,
-         "Operational state of boards and the devices they feed",
-         "Which distribution boards have problems, and what is downstream of them?", module="asset_schematic"),
+         "Operational asset state: Running, Idle, Warning, Down, Offline",
+         "Which equipment does each location hold, and which boards and devices are down?", module="asset_dashboard"),
     Page("diagnostics", "Diagnostics", "Asset Health & Engineering", REPLAY,
          "Diagnostic findings: detector finding, checked with no finding, not assessed",
          "Which monitored assets have a rule-based detector finding?", replay_page="Overview"),
@@ -109,8 +106,12 @@ BY_REPLAY_PAGE = {page.replay_page: page.key for page in PAGES if page.replay_pa
 REPLAY_PAGES = tuple(BY_REPLAY_PAGE)
 
 
+ALIASES = {"electrical": "asset-status"}  # Electrical is now a view inside Asset status
+
+
 def resolve(key: object) -> str:
     """A known page key, or the landing page for anything else (an old or mistyped bookmark)."""
+    key = ALIASES.get(key, key) if isinstance(key, str) else key
     return key if isinstance(key, str) and key in PAGE else DEFAULT
 
 

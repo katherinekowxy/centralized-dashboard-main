@@ -1294,12 +1294,50 @@ def site_page(page: navigation.Page) -> None:
     if page.key == "event-power":
         event_power_page(page)
         return
+    if page.key == "asset-status":
+        asset_status_page(page)
+        return
     page_header(page, title=page.module not in OWN_TITLE)
     db, module = site_db(), site_module(page.module)
     if db is None or module is None:
         st.info(f"{page.label} is unavailable: {'the site database' if db is None else 'its module'} could not be loaded.")
         return
     module.render(db)
+
+
+ASSET_VIEWS = ("By location", "Electrical boards")
+
+
+def asset_status_page(page: navigation.Page) -> None:
+    """Asset status, one page with two views. By location: the equipment each store's iSMM inventory holds (Ref. ID),
+    with demo states; without the inventories, the demo site assets. Electrical boards: the demo distribution boards
+    and what they feed (formerly the Electrical page)."""
+    from demo import asset_dashboard, asset_inventory, asset_schematic, sources
+
+    inventory = real_registers()["inventory"] if sources.data_dirs() else None
+    real = bool(inventory and inventory.get("items"))
+    if st.session_state.get("asset_view") not in ASSET_VIEWS:
+        st.session_state["asset_view"] = ASSET_VIEWS[0]
+    view = st.session_state["asset_view"]
+    if view == ASSET_VIEWS[0] and real:
+        page_header(page, badge=brand.source_badge("imported").replace("Imported file", "iSMM inventories") + " "
+                    + brand.demo_badge("Demo states"), sub="Equipment held at each location · states are demo")
+    else:
+        page_header(page, badge=brand.demo_badge("Demo data"),
+                    sub="Distribution boards and what they feed" if view == ASSET_VIEWS[1] else "Demo site assets")
+    st.segmented_control("View", ASSET_VIEWS, key="asset_view", label_visibility="collapsed")
+    db = site_db()
+    if view == ASSET_VIEWS[0]:
+        if real:
+            asset_inventory.render(inventory)
+        elif db is not None:
+            asset_dashboard.render(db)
+        else:
+            st.info("Asset status is unavailable: the site database could not be loaded.")
+    elif db is not None:
+        asset_schematic.render(db)
+    else:
+        st.info("Electrical boards are unavailable: the site database could not be loaded.")
 
 
 def overview_page() -> None:
@@ -1421,7 +1459,7 @@ def asset_overview_page() -> None:
     elif row["source"] == ac.SITE:
         st.markdown(f'<a href="{esc(row["href"])}" target="_blank">Open the asset page (new tab)</a> · '
                     f'<a href="?view=asset-status" target="_self">Asset status</a> · '
-                    f'<a href="?view=electrical" target="_self">Electrical distribution</a>', unsafe_allow_html=True)
+                    f'<a href="?view=electrical" target="_self">Electrical boards</a>', unsafe_allow_html=True)
         if row["category"] == "Event power":
             st.markdown('<a href="?view=event-power" target="_self">Event power</a>', unsafe_allow_html=True)
     else:
@@ -1599,6 +1637,9 @@ def open_page(key: str) -> None:
 def current_page() -> navigation.Page:
     """The page in session state, following ?view= on a fresh load or when the URL is changed by hand."""
     asked = st.query_params.get("view")
+    if asked == "electrical":  # old bookmark: open Asset status on its Electrical boards view
+        st.session_state["asset_view"] = "Electrical boards"
+        asked = navigation.resolve(asked)
     if "nav" not in st.session_state:
         st.session_state["nav"] = navigation.resolve(asked)
     elif asked in navigation.PAGE and asked != st.session_state.get("nav_applied"):
