@@ -7,7 +7,7 @@
 | Area | Pages |
 | --- | --- |
 | Site Overview | Site overview |
-| Site Map & PTW | PTW map |
+| Permits & Safety | PTW map |
 | Asset Health & Engineering | Asset overview, Asset status, Electrical distribution, Diagnostic findings, Engineering measurements |
 | Faults & Investigations | Work orders & fault trends, Fault log (iSMM export), Investigation queue |
 | Operations & Planning | Event power, Operational calendar |

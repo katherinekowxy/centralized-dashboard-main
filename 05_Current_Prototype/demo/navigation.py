@@ -39,15 +39,15 @@ class Page:
     client: bool = False   # shown in the client view; the rest are internal, engineering or demo pages
 
 
-AREAS = ("Site Overview", "Site Map & PTW", "Asset Health & Engineering", "Faults & Investigations",
+AREAS = ("Site Overview", "Permits & Safety", "Asset Health & Engineering", "Faults & Investigations",
          "Operations & Planning", "Administration & Integrations")
 
 PAGES = (
     Page("overview", "Site overview", "Site Overview", MIXED, "Summary across the areas below; each figure keeps its own meaning",
          "What needs attention across the site right now?", client=True),
-    Page("ptw-map", "Permit map", "Site Map & PTW", SITE, "PTW timing: active now or later today. Not a risk rating",
+    Page("ptw-map", "PTW map", "Permits & Safety", SITE, "PTW timing: active now or later today. Not a risk rating",
          "Where are permits to work today, and what do they isolate or close?", module="ptw_dashboard", client=True),
-    Page("permits", "Tool-box meetings", "Site Map & PTW", IMPORTED, "Safety briefings held by date, site and contractor",
+    Page("permits", "Tool-box meetings", "Permits & Safety", IMPORTED, "Safety briefings held by date, site and contractor",
          "Which tool-box meetings were recorded, and when?", client=True),
     Page("spares", "Inventories", "Asset Health & Engineering", IMPORTED, "Stock against each item's minimum: out, below minimum, OK",
          "Which items are available, low or out of stock?", client=True),

@@ -44,7 +44,7 @@ The sidebar opens on the client pages. Every page header carries a tag saying wh
 | Page | What it answers | Data |
 | --- | --- | --- |
 | Site overview | What needs attention today: open faults, new jobs, time to site, permits, tool-box meetings, stock-outs, event power | iSMM exports |
-| Permit map | Which contractors are working under a permit, by site | iSMM permits |
+| PTW map | Which contractors are working under a permit, and where | Permit-to-work forms (SharePoint), else iSMM permits by site |
 | Tool-box meetings | Which safety briefings were held, by company and date | iSMM tool-box meetings |
 | Inventories | Which spares are out of stock or below their minimum, by store | iSMM inventories |
 | Smart asset sample | How sensor readings and alerts could look for motors and pumps | **Synthetic sample** |

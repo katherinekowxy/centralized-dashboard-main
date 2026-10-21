@@ -94,7 +94,7 @@ def page_html(ctx: dict) -> str:
     split = f["week_split"]
     html = ui.kpis(cards)
     html += ui.grid([ui.panel("Open faults", open_rows, link=("Faults", "?view=fault-log")),
-                     ui.panel("Permits on site today", permit_rows, link=("Permit map", "?view=ptw-map")),
+                     ui.panel("Permits on site today", permit_rows, link=("PTW map", "?view=ptw-map")),
                      ui.panel("Out of stock", stock_rows, link=("Inventories", "?view=spares"))], "1.2fr 1.2fr 1fr")
     html += ui.grid([ui.panel("Event power handovers, last 7 days", power_rows, link=("Event power", "?view=event-power")),
                      ui.panel("Faults by trade, last 7 days", _bars(f["by_trade"], brand.SERIES[0])
