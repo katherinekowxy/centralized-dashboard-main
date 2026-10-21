@@ -1434,7 +1434,7 @@ def asset_overview_page() -> None:
         st.markdown('<a href="?view=fault-log" target="_self">Fault log</a>', unsafe_allow_html=True)
     elif row["source"] == ac.SITE:
         st.markdown(f'<a href="{esc(row["href"])}" target="_blank">Open the asset page (new tab)</a> · '
-                    f'<a href="?view=asset-status" target="_self">Fleet operational status</a> · '
+                    f'<a href="?view=asset-status" target="_self">Asset status</a> · '
                     f'<a href="?view=electrical" target="_self">Electrical distribution</a>', unsafe_allow_html=True)
         if row["category"] == "Event power":
             st.markdown('<a href="?view=event-power" target="_self">Event power</a>', unsafe_allow_html=True)
@@ -1596,6 +1596,13 @@ def site_detail(kind: str, record_id: str) -> None:
         st.info("The site database is not ready yet.")
     else:
         getattr(module, renderer)(record_id, db)
+        asset = next((item for item in db.assets() if item["asset_id"] == record_id), None) if kind == "asset" else None
+        if asset is not None:
+            from demo import sources
+            from demo.sources import asset_evidence
+
+            real = real_registers(str(sources.data_dir())) if sources.data_dir() is not None else None
+            st.markdown(asset_evidence.page_html(asset, real), unsafe_allow_html=True)
 
 
 def open_page(key: str) -> None:

@@ -1,10 +1,16 @@
-"""Synthetic site data for Bay South (docs/site-data-contract.md). Everything here is invented except zone positions.
+"""Synthetic site data for Bay South (docs/site-data-contract.md). Readings, states, permits and events are invented.
+
+Which equipment each place has follows the iSMM fault log, 1 Aug to 20 Oct 2026 (21 October 2026): an asset is listed
+only where faults were raised against that kind of equipment in that building, and is named by its iSMM tag where the
+fault remarks give one (CD-AHU-07, AHU-CM-10, CM-F-L1, CD-F-L1, LG-OG-3, LG-OG-4). Chillers are not listed: their
+faults are logged at the Energy Centre, which is not on the map. demo/sources/asset_evidence.py shows the matching
+records on each asset page.
 
 Times are relative to ``as_of`` (the real clock, rounded down to 15 minutes), so "today" always has work on it.
-The story at ``as_of``: Supertree Grove DB-03 is isolated under a permit and its outlets are down (red, with cones);
-a Children's Garden pump has tripped unexpectedly (red, no permit); an air handler runs on high voltage and a lake
-pump over its rated current (orange); a wetland pump meter has stopped reporting (grey); evening lights are idle
-by day. A reception overlaps the Grove works, so the calendar shows a clash. Two meeting rooms carry a week of bookings.
+The story at ``as_of``: Supertree Grove DB-03 is isolated under a permit and the CO5 supply is down (red, with cones);
+the Cloud Forest waterfall pump has tripped unexpectedly (red, no permit); an air handler runs on high voltage and the
+Dragonfly Lake aerator pump over its rated current (orange); the Chinese Garden pump meter has stopped reporting
+(grey); evening lights are idle by day. A reception overlaps the Grove works, so the calendar shows a clash. Two meeting rooms carry a week of bookings.
 """
 
 from __future__ import annotations
@@ -24,7 +30,7 @@ from demo.asset_state import SGT, in_operating_hours
 ZONES_JSON = Path(__file__).resolve().parents[1] / "assets" / "maps" / "bay-south-zones.json"
 ZONES_GEOJSON = ZONES_JSON.with_suffix(".geojson")  # real-world outlines, mostly from OpenStreetMap
 SEED = 7
-SEED_VERSION = "4"  # bump when the seed gains tables or rows, so an older file is rebuilt once
+SEED_VERSION = "6"  # bump when the seed gains tables or rows, so an older file is rebuilt once
 STEP = timedelta(minutes=15)
 HISTORY = timedelta(days=7)
 
@@ -44,22 +50,20 @@ UNCONNECTED = [  # in the register, but SignalDesk gets no readings from them: a
     ("ACT-DB-01", "Active Garden DB", "ACT", "DB", None),
     ("MDW-DB-01", "Meadow DB", "MDW", "DB", None),
     ("DFL-DB-01", "Dragonfly Lake DB", "DFL", "DB", None),
-    ("KFW-DB-01", "Wetlands DB", "KFW", "DB", None),
-    ("SGV-OUT-02", "Kiosk outlets", "SGV", "OUT", "SGV-DB-03"),
+    ("HER-DB-01", "Heritage Gardens DB", "HER", "DB", None),
+    ("GLD-DB-01", "Golden Garden DB", "GLD", "DB", None),  # no fault names it; assumed, as the spike lights it feeds are in the log
     ("SGV-LGT-02", "Path lights", "SGV", "LGT", "SGV-DB-01"),
     ("ENT-LGT-01", "Entrance lights", "ENT", "LGT", "ENT-DB-01"),
     ("ENT-OUT-01", "Ticketing outlets", "ENT", "OUT", "ENT-DB-01"),
-    ("FCK-LGT-01", "Clock lights", "FCK", "LGT", "FCK-DB-01"),
     ("CHG-LGT-01", "Treehouse lights", "CHG", "LGT", "CHG-DB-01"),
     ("BFP-LGT-01", "Plaza lights", "BFP", "LGT", "BFP-DB-01"),
-    ("GLD-OUT-01", "Kiosk outlets", "GLD", "OUT", "GLD-DB-01"),
 ]
 
 OG_BOXES = [  # outdoor power boxes for events: box_id, name, zone, fed from, incomer A, CEEform sockets as (rated A, phases)
-    ("MDW-OGB-01", "Meadow OG box 1", "MDW", "MDW-DB-01", 200, [(63, 3), (63, 3), (32, 3), (16, 1), (16, 1)]),
+    ("MDW-OGB-01", "LG-OG-4", "MDW", "MDW-DB-01", 200, [(63, 3), (63, 3), (32, 3), (16, 1), (16, 1)]),
     ("MDW-OGB-02", "Meadow OG box 2", "MDW", "MDW-DB-01", 125, [(32, 3), (32, 3), (16, 1), (16, 1), (16, 1)]),
     ("ACT-OGB-01", "Active Garden OG box", "ACT", "ACT-DB-01", 100, [(32, 3), (16, 1), (16, 1), (16, 1)]),
-    ("SGV-OGB-01", "Grove OG box", "SGV", "SGV-DB-03", 100, [(32, 3), (32, 3), (16, 1), (16, 1)]),
+    ("SGV-OGB-01", "LG-OG-3", "SGV", "SGV-DB-03", 100, [(32, 3), (32, 3), (16, 1), (16, 1)]),
     ("BFP-OGB-01", "Plaza OG box", "BFP", "BFP-DB-01", 125, [(63, 3), (32, 3), (16, 1), (16, 1)]),
 ]
 
@@ -95,7 +99,7 @@ ROOMS = [  # room_id, name, seats; fictional names, "2 for now" (Dan, 12 October
 ROOM_DAYS = [  # one list per day from as_of's date, cycled; (room, start, end, meeting, booked by) in SGT; teams, not people
     [("MR-01", "09:00", "09:30", "Daily operations huddle", "Facilities"),
      ("MR-01", "10:30", "12:00", "Permit coordination", "Engineering"),
-     ("MR-01", "14:00", "15:30", "Chiller service: vendor meeting", "Engineering"),
+     ("MR-01", "14:00", "15:30", "AHU service: vendor meeting", "Engineering"),
      ("MR-01", "16:00", "17:00", "Weekend market briefing", "Event Sales"),
      ("MR-02", "09:30", "10:00", "Interview", "HR"),
      ("MR-02", "11:00", "11:30", "Contractor induction", "Facilities"),
@@ -116,39 +120,34 @@ ROOM_DAYS = [  # one list per day from as_of's date, cycled; (room, start, end, 
      ("MR-02", "16:00", "17:00", "Team meeting", "Horticulture")],
 ]
 
-ASSETS = [  # asset_id, name, zone, type, criticality, fed_from, rated A, idle A, operating hours (SGT)
-    ("FDM-CHL-01", "Chiller 1", "FDM", "CHL", "high", "FDM-DB-01", 160, 8, "24h"),
-    ("FDM-CHL-02", "Chiller 2", "FDM", "CHL", "high", "FDM-DB-01", 160, 8, "24h"),
-    ("FDM-AHU-01", "Air handler 1", "FDM", "AHU", "high", "FDM-DB-01", 45, 2, "24h"),
+ASSETS = [  # asset_id, name, zone, type, criticality, fed_from, rated A, idle A, operating hours (SGT); see the module docstring
+    ("FDM-AHU-01", "AHU CD-AHU-07", "FDM", "AHU", "high", "FDM-DB-01", 45, 2, "24h"),
     ("FDM-AHU-02", "Air handler 2", "FDM", "AHU", "high", "FDM-DB-01", 45, 2, "24h"),
-    ("FDM-PMP-01", "Chilled water pump 1", "FDM", "PMP", "high", "FDM-DB-01", 30, 2, "24h"),
-    ("CFR-CHL-01", "Chiller 1", "CFR", "CHL", "high", "CFR-DB-01", 160, 8, "24h"),
-    ("CFR-AHU-01", "Air handler 1", "CFR", "AHU", "high", "CFR-DB-01", 45, 2, "24h"),
-    ("CFR-MST-01", "Misting system", "CFR", "MST", "medium", "CFR-DB-01", 12, .5, "08:00-21:00"),
+    ("FDM-PMP-01", "Flower field pump", "FDM", "PMP", "medium", "FDM-DB-01", 22, 1, "08:00-21:00"),
+    ("FDM-LFT-01", "Lift CD-F-L1", "FDM", "LFT", "medium", "FDM-DB-01", 20, 1, "09:00-21:00"),
+    ("CFR-AHU-01", "AHU-CM-10", "CFR", "AHU", "high", "CFR-DB-01", 45, 2, "24h"),
+    ("CFR-MST-01", "Fog machine 2", "CFR", "MST", "medium", "CFR-DB-01", 12, .5, "08:00-21:00"),
     ("CFR-PMP-01", "Waterfall pump", "CFR", "PMP", "medium", "CFR-DB-01", 25, 1, "09:00-21:00"),
-    ("CFR-LFT-01", "Lift 1", "CFR", "LFT", "medium", "CFR-DB-01", 20, 1, "09:00-21:00"),
+    ("CFR-LFT-01", "Lift CM-F-L1", "CFR", "LFT", "medium", "CFR-DB-01", 20, 1, "09:00-21:00"),
     ("SGV-DB-01", "Grove DB 1", "SGV", "DB", "high", None, 250, 2, "24h"),
     ("SGV-DB-03", "Grove DB 3", "SGV", "DB", "high", None, 200, 1, "24h"),
-    ("SGV-OUT-01", "Grove outlets", "SGV", "OUT", "low", "SGV-DB-03", 32, .5, "08:00-23:00"),
+    ("SGV-OUT-01", "CO5 supply", "SGV", "OUT", "low", "SGV-DB-03", 32, .5, "08:00-23:00"),
     ("SGV-LGT-01", "Supertree lights", "SGV", "LGT", "medium", "SGV-DB-01", 60, 1, "19:00-02:00"),
+    ("SGV-PMP-01", "Supertree filter pump", "SGV", "PMP", "medium", "SGV-DB-01", 15, 1, "24h"),
     ("SKY-LFT-01", "Skyway lift 1", "SKY", "LFT", "medium", "SKY-DB-01", 20, 1, "09:00-21:00"),
     ("SKY-LFT-02", "Skyway lift 2", "SKY", "LFT", "medium", "SKY-DB-01", 20, 1, "09:00-21:00"),
     ("SLV-DB-01", "Silver Garden DB", "SLV", "DB", "medium", None, 125, 1, "24h"),
-    ("SLV-FTN-01", "Fountain pump", "SLV", "FTN", "low", "SLV-DB-01", 15, .5, "09:00-21:00"),
+    ("SLV-FTN-01", "Water weir pump", "SLV", "FTN", "low", "SLV-DB-01", 15, .5, "09:00-21:00"),
     ("SLV-LGT-01", "Garden lights", "SLV", "LGT", "low", "SLV-DB-01", 25, .5, "19:00-02:00"),
-    ("GLD-DB-01", "Golden Garden DB", "GLD", "DB", "medium", None, 125, 1, "24h"),
-    ("GLD-LGT-01", "Golden Supertree lights", "GLD", "LGT", "medium", "GLD-DB-01", 40, 1, "19:00-02:00"),
+    ("GLD-LGT-01", "Golden Garden spike lights", "GLD", "LGT", "medium", "GLD-DB-01", 40, 1, "19:00-02:00"),
     ("CHG-DB-01", "Children's Garden DB", "CHG", "DB", "medium", None, 100, 1, "24h"),
-    ("CHG-PMP-01", "Water play pump", "CHG", "PMP", "medium", "CHG-DB-01", 22, 1, "09:00-19:00"),
     ("BFP-DB-01", "Plaza DB", "BFP", "DB", "medium", None, 160, 1, "24h"),
     ("BFP-OUT-01", "Plaza outlets", "BFP", "OUT", "low", "BFP-DB-01", 32, .5, "08:00-23:00"),
-    ("BFP-LFT-01", "Plaza lift", "BFP", "LFT", "medium", "BFP-DB-01", 20, 1, "07:00-23:00"),
     ("ENT-DB-01", "Entrance DB", "ENT", "DB", "medium", None, 125, 1, "24h"),
-    ("FCK-DB-01", "Floral Clock DB", "FCK", "DB", "low", None, 63, .5, "24h"),
     ("ACT-OUT-01", "Active Garden outlets", "ACT", "OUT", "low", "ACT-DB-01", 32, .5, "07:00-22:00"),
     ("MDW-LGT-01", "Meadow lights", "MDW", "LGT", "low", "MDW-DB-01", 30, .5, "19:00-23:00"),
-    ("DFL-PMP-01", "Lake circulation pump", "DFL", "PMP", "medium", "DFL-DB-01", 30, 2, "24h"),
-    ("KFW-PMP-01", "Wetland pump", "KFW", "PMP", "low", "KFW-DB-01", 15, 1, "24h"),
+    ("DFL-PMP-01", "Aerator pump", "DFL", "PMP", "medium", "DFL-DB-01", 30, 2, "24h"),
+    ("HER-PMP-01", "Chinese Garden pump", "HER", "PMP", "low", "HER-DB-01", 15, 1, "24h"),
 ]
 
 
@@ -189,20 +188,20 @@ def _story(as_of: datetime) -> dict[str, Any]:
         ("skyway", "SKY", "CTR-SKL", "Skyway lift inspection", "height"),
         ("silver", "SLV", "CTR-VRD", "Planting refresh", "landscape"),
         ("plaza", "BFP", "CTR-TMB", "Canopy repair", "civil"),
-        ("chiller", "FDM", "CTR-ARC", "Chiller 2 service", "mechanical"),
-        ("pump", "CHG", "CTR-NWD", "Pump trip investigation", "electrical"),
+        ("chiller", "FDM", "CTR-ARC", "CD-AHU-07 service", "mechanical"),
+        ("pump", "CFR", "CTR-NWD", "Pump trip investigation", "electrical"),
     ]
     # past and future permits for the calendar (days offset, start, end, zone, contractor, title, type)
     extra = [(-6, "09:00", "17:00", "CFR", "CTR-ARC", "AHU coil clean", "mechanical"),
              (-4, "08:00", "12:00", "GLD", "CTR-NWD", "Lighting driver swap", "electrical"),
              (-3, "21:00", "23:59", "SGV", "CTR-SKL", "Supertree canopy check", "height"),
              (-2, "07:00", "15:00", "MDW", "CTR-VRD", "Turf renovation", "landscape"),
-             (1, "09:00", "17:00", "CFR", "CTR-ARC", "Chiller 1 tube clean", "mechanical"),
+             (1, "09:00", "17:00", "CFR", "CTR-ARC", "AHU-CM-10 filter change", "mechanical"),
              (2, "08:00", "16:00", "ACT", "CTR-TMB", "Play surface repair", "civil"),
              (3, "22:00", "23:59", "SGV", "CTR-NWD", "Lighting control upgrade", "electrical"),
              (4, "09:00", "13:00", "SKY", "CTR-SKL", "Skyway lift 1 inspection", "height"),
              (6, "08:00", "18:00", "FCK", "CTR-VRD", "Floral Clock replanting", "landscape"),
-             (9, "09:00", "17:00", "FDM", "CTR-ARC", "Chiller 1 quarterly service", "mechanical")]
+             (9, "09:00", "17:00", "FDM", "CTR-ARC", "Air handler 2 quarterly service", "mechanical")]
     year = as_of.astimezone(SGT).year
     rows, ids = [], {}
     for number, (key, zone, contractor, title, kind) in enumerate(ptws, start=142):
@@ -222,13 +221,13 @@ def _story(as_of: datetime) -> dict[str, Any]:
     sky_close = (p["skyway"][0] + timedelta(hours=1), p["skyway"][0] + timedelta(hours=3))
     impacts = [
         impact("grove", 1, "electrical", "asset", "SGV-DB-03", "isolated", "DB-03 isolated"),
-        impact("grove", 2, "electrical", "asset", "SGV-OUT-01", "down", "3 outlets down"),
+        impact("grove", 2, "electrical", "asset", "SGV-OUT-01", "down", "CO5 supply off"),
         impact("bridge", 1, "physical", "zone", "DFB", "closed", "Bridge closed"),
         impact("skyway", 1, "physical", "zone", "SKY", "closed", "Skyway closed", sky_close),
         impact("silver", 1, "physical", "route", "Silver Garden east path", "restricted", "East path restricted"),
         impact("plaza", 1, "physical", "route", "Plaza canopy walkway", "closed", "Canopy walkway closed"),
-        impact("chiller", 1, "electrical", "asset", "FDM-CHL-02", "isolated", "Chiller 2 isolated"),
-        impact("pump", 1, "electrical", "asset", "CHG-PMP-01", "isolated", "Pump isolated for testing"),
+        impact("chiller", 1, "electrical", "asset", "FDM-AHU-01", "isolated", "CD-AHU-07 isolated"),
+        impact("pump", 1, "electrical", "asset", "CFR-PMP-01", "isolated", "Pump isolated for testing"),
     ]
     grove_end = p["grove"][1]
     events = [  # eo_id, zone, title, start, end, organiser, guests
@@ -249,18 +248,18 @@ def _story(as_of: datetime) -> dict[str, Any]:
                   for number, (zone, title, start, end, organiser, guests) in enumerate(events, start=31)]
     work = [  # asset, title, start, end, status, linked permit key
         ("SGV-DB-03", "Replace DB-03 incomer", *p["grove"], "in_progress", "grove"),
-        ("FDM-CHL-02", "Chiller 2 quarterly service", *p["chiller"], "scheduled", "chiller"),
-        ("CHG-PMP-01", "Investigate pump trip", *p["pump"], "scheduled", "pump"),
+        ("FDM-AHU-01", "CD-AHU-07 quarterly service", *p["chiller"], "scheduled", "chiller"),
+        ("CFR-PMP-01", "Investigate pump trip", *p["pump"], "scheduled", "pump"),
         ("FDM-AHU-01", "Filter change", sgt_day(as_of, -5, "09:00"), sgt_day(as_of, -5, "11:00"), "done", None),
         ("CFR-AHU-01", "Coil clean", sgt_day(as_of, -6, "09:00"), sgt_day(as_of, -6, "17:00"), "done", None),
         ("GLD-LGT-01", "Driver replacement", sgt_day(as_of, -4, "08:00"), sgt_day(as_of, -4, "12:00"), "done", None),
         ("SKY-LFT-01", "Monthly lift inspection", sgt_day(as_of, 4, "09:00"), sgt_day(as_of, 4, "13:00"), "scheduled", None),
-        ("CFR-CHL-01", "Tube clean", sgt_day(as_of, 1, "09:00"), sgt_day(as_of, 1, "17:00"), "scheduled", None),
-        ("BFP-LFT-01", "Door sensor check", sgt_day(as_of, 2, "07:00"), sgt_day(as_of, 2, "08:00"), "scheduled", None),
-        ("SLV-FTN-01", "Nozzle clean", sgt_day(as_of, 3, "08:00"), sgt_day(as_of, 3, "09:00"), "scheduled", None),
-        ("DFL-PMP-01", "Pump overhaul", sgt_day(as_of, 5, "08:00"), sgt_day(as_of, 5, "16:00"), "scheduled", None),
+        ("CFR-LFT-01", "Monthly lift inspection", sgt_day(as_of, 1, "09:00"), sgt_day(as_of, 1, "17:00"), "scheduled", None),
+        ("FDM-LFT-01", "Door sensor check", sgt_day(as_of, 2, "07:00"), sgt_day(as_of, 2, "08:00"), "scheduled", None),
+        ("SLV-FTN-01", "Weir screen clean", sgt_day(as_of, 3, "08:00"), sgt_day(as_of, 3, "09:00"), "scheduled", None),
+        ("DFL-PMP-01", "Aerator cable insulation test", sgt_day(as_of, 5, "08:00"), sgt_day(as_of, 5, "16:00"), "scheduled", None),
         ("ENT-DB-01", "Thermographic survey", sgt_day(as_of, 6, "06:00"), sgt_day(as_of, 6, "08:00"), "scheduled", None),
-        ("FDM-CHL-01", "Quarterly service", sgt_day(as_of, 9, "09:00"), sgt_day(as_of, 9, "17:00"), "scheduled", None),
+        ("FDM-PMP-01", "Quarterly service", sgt_day(as_of, 9, "09:00"), sgt_day(as_of, 9, "17:00"), "scheduled", None),
         ("CFR-MST-01", "Nozzle descale", sgt_day(as_of, -1, "07:00"), sgt_day(as_of, -1, "08:00"), "done", None),
         ("SGV-LGT-01", "Lighting control upgrade", sgt_day(as_of, 3, "22:00"), sgt_day(as_of, 3, "23:59"), "scheduled", None),
     ]
@@ -268,7 +267,7 @@ def _story(as_of: datetime) -> dict[str, Any]:
                   "scheduled_end": iso(end), "status": status, "ptw_id": ids.get(key) if key else None}
                  for number, (asset, title, start, end, status, key) in enumerate(work, start=457)]
     return {"ptws": rows, "ptw_impacts": impacts, "event_orders": event_rows, "work_orders": work_rows,
-            "isolations": {"SGV-DB-03": p["grove"], "SGV-OUT-01": p["grove"], "FDM-CHL-02": p["chiller"], "CHG-PMP-01": p["pump"]}}
+            "isolations": {"SGV-DB-03": p["grove"], "SGV-OUT-01": p["grove"], "FDM-AHU-01": p["chiller"], "CFR-PMP-01": p["pump"]}}
 
 
 def _bookings(as_of: datetime, batch: str) -> list[dict]:
@@ -288,19 +287,19 @@ def _bookings(as_of: datetime, batch: str) -> list[dict]:
 def _readings(as_of: datetime, isolations: dict[str, tuple], rng: random.Random, batch: str) -> list[dict]:
     """Seven days of 15-minute electrical readings consistent with each asset's intended state at as_of."""
     rows = []
-    trip_at = as_of - timedelta(minutes=50)            # CHG-PMP-01 trips unexpectedly
-    offline_from = as_of - timedelta(hours=2)          # KFW-PMP-01 meter stops reporting
+    trip_at = as_of - timedelta(minutes=50)            # CFR-PMP-01 trips unexpectedly
+    offline_from = as_of - timedelta(hours=2)          # HER-PMP-01 meter stops reporting
     steps = int(HISTORY / STEP)
     for asset_id, _, _, _, _, _, rated, idle, hours in ASSETS:
         energy = rng.uniform(15_000, 90_000)
         phase = rng.uniform(0, 2 * math.pi)
         for step in range(steps, -1, -1):
             at = as_of - step * STEP
-            if asset_id == "KFW-PMP-01" and at > offline_from:
+            if asset_id == "HER-PMP-01" and at > offline_from:
                 continue
             start, end = isolations.get(asset_id, (None, None))
             isolated = start is not None and start <= at < end
-            tripped = asset_id == "CHG-PMP-01" and at >= trip_at
+            tripped = asset_id == "CFR-PMP-01" and at >= trip_at
             running = in_operating_hours(hours, at) and not isolated and not tripped
             hour = at.astimezone(SGT).hour + at.astimezone(SGT).minute / 60
             load = .55 + .15 * math.sin(2 * math.pi * (hour - 9) / 24 + phase / 6) + rng.gauss(0, .025)
@@ -470,6 +469,13 @@ def build(path: Path | str | None = None, as_of: datetime | None = None, seed: i
             site_db.insert(connection, "ingest_batches", data["ingest_batches"])
             for table in REFERENCE:
                 site_db.insert(connection, table, data[table], mode="replace")
+            listed = [row["asset_id"] for row in data["assets"]]  # drop seed assets the seed no longer lists, unless imported readings use them
+            marks = ",".join("?" * len(listed))
+            gone = [row[0] for row in connection.execute(
+                f"SELECT asset_id FROM assets WHERE ingest_batch_id LIKE 'seed-%' AND asset_id NOT IN ({marks}) "
+                "AND asset_id NOT IN (SELECT asset_id FROM readings)", listed)]
+            for table in ("asset_aliases", "work_orders", "event_power", "assets"):
+                connection.executemany(f"DELETE FROM {table} WHERE asset_id = ?", [(aid,) for aid in gone])
             for table in (*SEEDED, "ptw_impacts"):
                 site_db.insert(connection, table, data[table], mode="ignore")
     finally:

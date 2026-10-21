@@ -198,7 +198,7 @@ def states_html(data: dict) -> str:
                      for s in order)
     note = (f"{data['monitored']} monitored site assets, excluding event-power boxes and sockets."
             + (f" {data['not_monitored']} more are in the register without readings." if data["not_monitored"] else ""))
-    return (f'<section class="ov-panel"><div class="ov-h">Asset operational state <a href="?view=asset-status" target="_self">Fleet status →</a></div>'
+    return (f'<section class="ov-panel"><div class="ov-h">Asset operational state <a href="?view=asset-status" target="_self">Asset status →</a></div>'
             f'<div class="ov-bar" role="img" aria-label="Asset operational state distribution">{bar}</div>'
             f'<div class="ov-legend">{legend}</div><div class="ov-note">{esc(note)} Operational state only; '
             f'diagnostic findings are reported separately below.</div></section>')

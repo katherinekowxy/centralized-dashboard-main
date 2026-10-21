@@ -13,7 +13,7 @@ The timestamp rule (one rule, no guessing)
   zone. A timestamp more than 15 minutes in the future, or before 2000, is refused: usually a wrong offset.
 
 Each row
-- ``meter_ref`` must be an alias in ``asset_aliases`` (for example ``EMS-FDMCHL01``); an unknown ref is refused.
+- ``meter_ref`` must be an alias in ``asset_aliases`` (for example ``EMS-FDMAHU01``); an unknown ref is refused.
 - ``point`` and ``unit`` must be one of the pairs in ``POINTS``; ``power_factor`` has an empty unit.
 - ``value`` must be a plain number inside the point's plausible range; ``trip_state`` is exactly 0 or 1.
 

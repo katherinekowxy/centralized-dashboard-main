@@ -32,7 +32,7 @@ def by_name(data: dict, name: str) -> dict:
 def test_boxes_problems_first_with_socket_counts(db) -> None:
     data = event_power.board(db)
     assert [item["box"]["name"] for item in data["boxes"]] == [
-        "Meadow OG box 2", "Meadow OG box 1", "Grove OG box", "Active Garden OG box", "Plaza OG box"]  # a zone's boxes together
+        "Meadow OG box 2", "LG-OG-4", "LG-OG-3", "Active Garden OG box", "Plaza OG box"]  # a zone's boxes together
     assert [len(item["sockets"]) for item in data["boxes"]] == [5, 5, 4, 4, 4]
     tally = event_power.tally_html(data)
     for count, words in [(1, "Tripped"), (4, "No supply"), (1, "Warning"), (10, "In use"), (6, "Free")]:
@@ -54,7 +54,7 @@ def test_live_event_loads_and_socket_words(db) -> None:
 
 
 def test_an_isolated_db_leaves_its_box_without_supply_and_flags_the_next_event(db) -> None:
-    grove = by_name(event_power.board(db), "Grove OG box")
+    grove = by_name(event_power.board(db), "LG-OG-3")
     assert grove["dead"] and grove["state"] == event_power.NO_SUPPLY
     page = event_power.box_html(grove)
     assert f"--line:{event_power.DEAD_LINE};--ls:dashed" in page
@@ -83,11 +83,11 @@ def test_tab_renders_and_the_permit_page_says_the_box_has_no_supply(monkeypatch,
     at.run()
     at.button(key="nav-event-power").click().run()
     assert not at.exception
-    assert "Meadow OG box 1" in "\n".join(item.value for item in at.markdown)
+    assert "LG-OG-4" in "\n".join(item.value for item in at.markdown)
     permit = AppTest.from_file(str(APP), default_timeout=60)
     permit.query_params["ptw"] = "PTW-2026-0142"
     permit.run()
-    assert "Grove OG box · No supply" in "\n".join(item.value for item in permit.markdown)
+    assert "LG-OG-3 · No supply" in "\n".join(item.value for item in permit.markdown)
 
 
 def test_empty_database_shows_a_message(monkeypatch) -> None:

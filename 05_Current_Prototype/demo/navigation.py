@@ -57,7 +57,7 @@ PAGES = (
     Page("assets", "Asset overview", "Asset Health & Engineering", MIXED,
          "Operational state (site assets) and diagnostic findings (replay assets), in separate columns",
          "Which assets exist in each category, and which need attention in their own terms?"),
-    Page("asset-status", "Fleet status", "Asset Health & Engineering", SITE,
+    Page("asset-status", "Asset status", "Asset Health & Engineering", SITE,
          "Operational asset state: Operational, Idle, Warning, Down, Offline",
          "Which site assets are running, idle, degraded, down or offline?", module="asset_dashboard"),
     Page("electrical", "Electrical", "Asset Health & Engineering", SITE,

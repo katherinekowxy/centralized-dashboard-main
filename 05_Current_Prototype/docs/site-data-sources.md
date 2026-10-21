@@ -70,7 +70,7 @@ Each source has its own names for things. We keep our IDs ([site-naming.md](site
 
 | Their name (`alias`) | Our asset (`asset_id`) | Source (`system`) |
 | --- | --- | --- |
-| `EMS-FDMCHL01` | `FDM-CHL-01` | Energy meters (synthetic) |
+| `EMS-FDMAHU01` | `FDM-AHU-01` | Energy meters (synthetic) |
 
 - An unknown name is refused. It is never guessed, and never creates a new asset.
 - Connecting a new meter means adding one alias row.

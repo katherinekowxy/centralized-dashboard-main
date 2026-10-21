@@ -4,7 +4,7 @@
 
 Writes, next to this script:
 - electrical-sample.xlsx       2 hours of 15-minute readings (09 Oct 2026, 08:00-10:00 SGT) for three seed assets,
-                               by their energy-meter aliases EMS-FDMCHL01, EMS-FDMPMP01 and EMS-SGVDB01
+                               by their energy-meter aliases EMS-FDMAHU01, EMS-FDMPMP01 and EMS-SGVDB01
 - electrical-bad-sample.xlsx   the first quarter-hour of those readings plus three bad rows: a naive timestamp,
                                an unknown meter and a power factor of 1.4, so the importer refuses the file
 - PTW-2026-0901.pdf            an electrical isolation of an asset plus a path closure (template SD-PTW-1)
@@ -37,7 +37,7 @@ SGT = timezone(timedelta(hours=8))
 FIXED = datetime(2026, 10, 12, 0, 0, 0)  # file metadata time, so the bytes never change
 START = datetime(2026, 10, 9, 8, 0, tzinfo=SGT)
 STEPS = 9  # 08:00 to 10:00 SGT inclusive, every 15 minutes
-METERS = (("EMS-FDMCHL01", 160), ("EMS-FDMPMP01", 30), ("EMS-SGVDB01", 250))  # alias, rated current (A)
+METERS = (("EMS-FDMAHU01", 45), ("EMS-FDMPMP01", 30), ("EMS-SGVDB01", 250))  # alias, rated current (A)
 BANNER = "SYNTHETIC SAMPLE - fictional meter export for SignalDesk; not from any Gardens by the Bay system"
 HEADER = ("meter_ref", "timestamp", "point", "value", "unit")
 ABOUT = (
@@ -85,7 +85,7 @@ def reading_rows(seed: int = 901) -> list[list]:
 def bad_rows() -> list[list]:
     good = reading_rows()[: 6 * len(METERS)]  # the first quarter-hour, all valid
     return good + [
-        ["EMS-FDMCHL01", "2026-10-09T08:15:00", "voltage_v", 230.4, "V"],                    # naive timestamp
+        ["EMS-FDMAHU01", "2026-10-09T08:15:00", "voltage_v", 230.4, "V"],                    # naive timestamp
         ["EMS-XYZ999", "2026-10-09T08:15:00+08:00", "current_a", 50.2, "A"],                 # unknown meter
         ["EMS-FDMPMP01", "2026-10-09T08:15:00+08:00", "power_factor", 1.4, None],           # power factor above 1
     ]

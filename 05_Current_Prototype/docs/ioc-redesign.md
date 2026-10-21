@@ -8,7 +8,7 @@
 | --- | --- |
 | Site Overview | Site overview |
 | Site Map & PTW | PTW map |
-| Asset Health & Engineering | Asset overview, Fleet operational status, Electrical distribution, Diagnostic findings, Engineering measurements |
+| Asset Health & Engineering | Asset overview, Asset status, Electrical distribution, Diagnostic findings, Engineering measurements |
 | Faults & Investigations | Work orders & fault trends, Fault log (iSMM export), Investigation queue |
 | Operations & Planning | Event power, Operational calendar |
 | Administration & Integrations | Asset register & data import, Display management, Platform architecture, External platform research |

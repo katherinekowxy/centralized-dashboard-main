@@ -18,7 +18,7 @@ BAD_SAMPLE = SAMPLES / "electrical-bad-sample.xlsx"
 AS_OF = datetime(2026, 10, 12, 6, 0, tzinfo=timezone.utc)  # the seed's 7-day history covers the samples' 09 Oct window
 NOW = AS_OF + timedelta(minutes=7)                           # 14:07 SGT, so batch IDs carry 20261012
 HEADER = ("meter_ref", "timestamp", "point", "value", "unit")
-GOOD = ("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", 230.4, "V")
+GOOD = ("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", 230.4, "V")
 OLD = "2026-09-01T08:00:00+08:00"                            # outside the seed's history: a brand-new reading
 
 
@@ -88,7 +88,7 @@ def test_sample_preview_commit_and_reimport(db_path) -> None:
     raw = SAMPLE.read_bytes()
     preview = ingest_excel.preview(SAMPLE, db_path, now=NOW)
     assert preview["errors"] == [] and preview["total_rows"] == len(preview["rows"]) == 162  # 3 meters x 9 times x 6 points
-    assert {row["asset_id"] for row in preview["rows"]} == {"FDM-CHL-01", "FDM-PMP-01", "SGV-DB-01"}
+    assert {row["asset_id"] for row in preview["rows"]} == {"FDM-AHU-01", "FDM-PMP-01", "SGV-DB-01"}
     assert {row["status"] for row in preview["rows"]} == {"replaces_seed"}  # the seed already fills that window
     assert preview["rows"][0]["observed_at"] == "2026-10-09T00:00:00+00:00"  # 08:00 SGT stored as UTC
     assert not query(db_path, "SELECT * FROM ingest_batches WHERE source_type = 'excel'")  # a preview saves nothing
@@ -100,9 +100,9 @@ def test_sample_preview_commit_and_reimport(db_path) -> None:
     assert batch == {"batch_id": "excel-20261012-001", "source_type": "excel", "file_name": "electrical-sample.xlsx",
                      "sha256": hashlib.sha256(raw).hexdigest(), "received_at": "2026-10-12T06:07:00+00:00", "row_count": 162}
     assert query(db_path, "SELECT COUNT(*) AS n FROM readings WHERE ingest_batch_id = ?", batch["batch_id"])[0]["n"] == 162
-    first = site_db.readings("FDM-CHL-01", "2026-10-09T00:00:00+00:00", "2026-10-09T00:00:00+00:00", db_path)
+    first = site_db.readings("FDM-AHU-01", "2026-10-09T00:00:00+00:00", "2026-10-09T00:00:00+00:00", db_path)
     sample_volts = next(row["value"] for row in preview["rows"]
-                        if row["asset_id"] == "FDM-CHL-01" and row["point_id"] == "voltage_v")
+                        if row["asset_id"] == "FDM-AHU-01" and row["point_id"] == "voltage_v")
     assert {(r["point_id"], r["ingest_batch_id"]) for r in first} >= {("voltage_v", "excel-20261012-001")}
     assert next(r["value"] for r in first if r["point_id"] == "voltage_v") == sample_volts
 
@@ -122,13 +122,13 @@ def test_sample_preview_commit_and_reimport(db_path) -> None:
 
 def test_imported_reading_survives_seed_rebuild(db_path) -> None:
     ingest_excel.commit(SAMPLE, "electrical-sample.xlsx", db_path, now=NOW)
-    ingest_excel.commit(xlsx(("EMS-FDMCHL01", OLD, "current_a", 88.5, "A")), "old.xlsx", db_path, now=NOW)
+    ingest_excel.commit(xlsx(("EMS-FDMAHU01", OLD, "current_a", 88.5, "A")), "old.xlsx", db_path, now=NOW)
     window = ("2026-10-09T00:00:00+00:00", "2026-10-09T02:00:00+00:00")
-    before = site_db.readings("FDM-CHL-01", *window, db_path)
+    before = site_db.readings("FDM-AHU-01", *window, db_path)
     site_seed.build(db_path, AS_OF + timedelta(days=1))
-    after = site_db.readings("FDM-CHL-01", *window, db_path)
+    after = site_db.readings("FDM-AHU-01", *window, db_path)
     assert after == before and {row["ingest_batch_id"] for row in after} == {"excel-20261012-001"}
-    old = site_db.readings("FDM-CHL-01", "2026-09-01T00:00:00+00:00", "2026-09-01T00:00:00+00:00", db_path)
+    old = site_db.readings("FDM-AHU-01", "2026-09-01T00:00:00+00:00", "2026-09-01T00:00:00+00:00", db_path)
     assert [(row["value"], row["ingest_batch_id"]) for row in old] == [(88.5, "excel-20261012-002")]
     assert len(query(db_path, "SELECT * FROM ingest_batches WHERE source_type = 'seed'")) == 1
     assert ingest_excel.commit(SAMPLE, "electrical-sample.xlsx", db_path, now=NOW)["already_imported"]
@@ -136,7 +136,7 @@ def test_imported_reading_survives_seed_rebuild(db_path) -> None:
 
 def test_new_reading_and_sgt_batch_date(db_path) -> None:
     late = datetime(2026, 10, 12, 17, 0, tzinfo=timezone.utc)  # 01:00 SGT on 13 October
-    content = xlsx(("EMS-FDMCHL01", OLD, "voltage_v", 231, "V"), ("ems-fdmchl01", "2026-09-01T00:15:00Z", "trip_state", 0, "state"))
+    content = xlsx(("EMS-FDMAHU01", OLD, "voltage_v", 231, "V"), ("ems-fdmahu01", "2026-09-01T00:15:00Z", "trip_state", 0, "state"))
     preview = ingest_excel.preview(content, db_path, now=late)
     assert [row["status"] for row in preview["rows"]] == ["new", "new"]
     result = ingest_excel.commit(content, "meters.xlsx", db_path, now=late)
@@ -158,30 +158,30 @@ def test_bad_sample_is_refused_whole(db_path) -> None:
 
 
 @pytest.mark.parametrize("row, expected", [
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00", "voltage_v", 230, "V"), "has no UTC offset"),
-    (("EMS-FDMCHL01", datetime(2026, 10, 9, 8, 0), "voltage_v", 230, "V"), "is an Excel date cell"),
-    (("EMS-FDMCHL01", "09/10/2026 08:00", "voltage_v", 230, "V"), "is not an ISO 8601 time"),
-    (("EMS-FDMCHL01", 46304.33, "voltage_v", 230, "V"), "timestamp is a number"),
-    (("EMS-FDMCHL01", None, "voltage_v", 230, "V"), "timestamp is empty"),
-    (("EMS-FDMCHL01", "2026-10-12T20:00:00+08:00", "voltage_v", 230, "V"), "is in the future"),
-    (("EMS-FDMCHL01", "1999-12-31T08:00:00+08:00", "voltage_v", 230, "V"), "is before 2000"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00", "voltage_v", 230, "V"), "has no UTC offset"),
+    (("EMS-FDMAHU01", datetime(2026, 10, 9, 8, 0), "voltage_v", 230, "V"), "is an Excel date cell"),
+    (("EMS-FDMAHU01", "09/10/2026 08:00", "voltage_v", 230, "V"), "is not an ISO 8601 time"),
+    (("EMS-FDMAHU01", 46304.33, "voltage_v", 230, "V"), "timestamp is a number"),
+    (("EMS-FDMAHU01", None, "voltage_v", 230, "V"), "timestamp is empty"),
+    (("EMS-FDMAHU01", "2026-10-12T20:00:00+08:00", "voltage_v", 230, "V"), "is in the future"),
+    (("EMS-FDMAHU01", "1999-12-31T08:00:00+08:00", "voltage_v", 230, "V"), "is before 2000"),
     (("EMS-NOPE01", "2026-10-09T08:00:00+08:00", "voltage_v", 230, "V"), "unknown meter_ref 'EMS-NOPE01'"),
-    (("FDM-CHL-01", "2026-10-09T08:00:00+08:00", "voltage_v", 230, "V"), "unknown meter_ref"),  # asset IDs are not aliases
+    (("FDM-AHU-01", "2026-10-09T08:00:00+08:00", "voltage_v", 230, "V"), "unknown meter_ref"),  # asset IDs are not aliases
     ((None, "2026-10-09T08:00:00+08:00", "voltage_v", 230, "V"), "meter_ref is empty"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "frequency_hz", 50, "Hz"), "unknown point 'frequency_hz'"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", 0.23, "kV"), "unit for voltage_v must be 'V'"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "power_kw", 30, "KW"), "unit for power_kw must be 'kW'"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "power_factor", 0.9, "%"), "unit for power_factor must be empty"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "trip_state", 0, None), "unit for trip_state must be 'state'"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", "abc", "V"), "is not a plain number"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", "nan", "V"), "is not a plain number"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", None, "V"), "value is empty"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", True, "V"), "TRUE/FALSE"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "voltage_v", 400, "V"), "voltage_v 400 is outside the plausible range"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "current_a", -5, "A"), "current_a -5 is outside the plausible range"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "power_factor", 1.4, None), "power_factor 1.4 is outside"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "trip_state", 0.5, "state"), "trip_state must be 0 or 1"),
-    (("EMS-FDMCHL01", "2026-10-09T08:00:00+08:00", "trip_state", 2, "state"), "trip_state must be 0 or 1"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "frequency_hz", 50, "Hz"), "unknown point 'frequency_hz'"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", 0.23, "kV"), "unit for voltage_v must be 'V'"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "power_kw", 30, "KW"), "unit for power_kw must be 'kW'"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "power_factor", 0.9, "%"), "unit for power_factor must be empty"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "trip_state", 0, None), "unit for trip_state must be 'state'"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", "abc", "V"), "is not a plain number"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", "nan", "V"), "is not a plain number"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", None, "V"), "value is empty"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", True, "V"), "TRUE/FALSE"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "voltage_v", 400, "V"), "voltage_v 400 is outside the plausible range"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "current_a", -5, "A"), "current_a -5 is outside the plausible range"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "power_factor", 1.4, None), "power_factor 1.4 is outside"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "trip_state", 0.5, "state"), "trip_state must be 0 or 1"),
+    (("EMS-FDMAHU01", "2026-10-09T08:00:00+08:00", "trip_state", 2, "state"), "trip_state must be 0 or 1"),
 ])
 def test_each_row_rejection_reason(seeded, row, expected) -> None:
     preview = ingest_excel.preview(xlsx(GOOD, row), seeded, now=NOW)
@@ -211,7 +211,7 @@ def test_file_level_rejections(seeded, content, expected) -> None:
 
 def test_layout_tolerance(seeded) -> None:
     """Title lines above the header, header case, a leading About sheet, Z offsets and blank rows are all fine."""
-    content = xlsx(("EMS-FDMCHL01", "2026-10-09T00:00:00Z", "VOLTAGE_V", "230.4", "V"), (None,) * 5, GOOD,
+    content = xlsx(("EMS-FDMAHU01", "2026-10-09T00:00:00Z", "VOLTAGE_V", "230.4", "V"), (None,) * 5, GOOD,
                    header=("Meter_Ref", "Timestamp", "Point", "Value", "Unit"),
                    above=(("SYNTHETIC SAMPLE export",), ("Generated by a fictional EMS",)), first_sheet="About")
     preview = ingest_excel.preview(content, seeded, now=NOW)
@@ -221,8 +221,8 @@ def test_layout_tolerance(seeded) -> None:
 
 
 def test_conflict_with_an_imported_reading_refuses_the_file(db_path) -> None:
-    ingest_excel.commit(xlsx(("EMS-FDMCHL01", OLD, "voltage_v", 230, "V")), "first.xlsx", db_path, now=NOW)
-    changed = xlsx(("EMS-FDMCHL01", OLD, "voltage_v", 232, "V"))
+    ingest_excel.commit(xlsx(("EMS-FDMAHU01", OLD, "voltage_v", 230, "V")), "first.xlsx", db_path, now=NOW)
+    changed = xlsx(("EMS-FDMAHU01", OLD, "voltage_v", 232, "V"))
     assert messages(changed, db_path) == ["conflicts with a reading already saved (batch excel-20261012-001, value 230)"]
     with pytest.raises(ingest_excel.ExcelImportError):
         ingest_excel.commit(changed, "second.xlsx", db_path, now=NOW)

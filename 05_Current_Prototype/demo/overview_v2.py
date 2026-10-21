@@ -46,7 +46,7 @@ def demo_panels(summary: dict) -> str:
     legend = "".join(f'<span>{brand.status_mark(brand.ASSET_STATE[k][0], brand.ASSET_STATE[k][2])}{brand.ASSET_STATE[k][1]}</span><b>{states[k]}</b>'
                      for k in order)
     health = ui.panel("Asset health", ui.bar([(states[k], brand.ASSET_STATE[k][0], brand.ASSET_STATE[k][1]) for k in order])
-                      + f'<div class="u-legend">{legend}</div>', link=("Fleet status", "?view=asset-status"))
+                      + f'<div class="u-legend">{legend}</div>', link=("Asset status", "?view=asset-status"))
     health = health.replace("<span>Asset health</span>", f"<span>Asset health {DEMO}</span>", 1)
     rows = [{"left": ui.pill({"down": "fault", "warning": "warn", "offline": "off"}.get(r["state"], "neutral") if r["state"] else "neutral", r["word"]),
              "main": r["what"], "sub": f'{r["where"]} · {r["why"]}' if r["why"] else r["where"], "href": r["href"]} for r in summary["attention"][:6]]

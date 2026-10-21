@@ -56,7 +56,7 @@ def test_only_problems_maintenance_and_their_parent_dbs_show(seeded) -> None:
         expected = asset_schematic.needs_attention(row) or _shown_below(asset_id, data) or row.get("fed_from") in down_dbs
         assert (marker in page) is expected, asset_id
     zones = [html.unescape(part.split("<")[0]) for part in page.split('<div class="tv-zh"><span>')[1:]]
-    assert zones[0] in {"Supertree Grove", "Far East Organization Children's Garden"}
+    assert zones[0] in {"Supertree Grove", "Cloud Forest"}
     hidden = sum(1 for roots in data["roots"].values() for root in roots if not asset_schematic.branch_html(root, data)[0])
     assert f"{hidden} other DBs · all normal" in page and hidden > 5
 

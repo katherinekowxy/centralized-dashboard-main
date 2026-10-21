@@ -97,7 +97,7 @@ def assets(ctx: dict) -> tuple[str, str]:
     problems = [r for r in s["attention"] if r["kind"] == "Asset state"]
     rows = [f'<li class="dp-ban dp-{esc(r["state"])}"><span class="dp-w">{esc(r["word"])}</span><span class="dp-t">{esc(r["what"])}'
             f'<small>{esc(r["where"])}{" · " + esc(r["why"]) if r["why"] else ""}</small></span></li>' for r in problems[:6]]
-    more = f'<div class="dp-more">+{len(problems) - 6} more on Fleet operational status</div>' if len(problems) > 6 else ""
+    more = f'<div class="dp-more">+{len(problems) - 6} more on Asset status</div>' if len(problems) > 6 else ""
     return tiles + _list(rows, "No asset is Down, in Warning or Offline.") + more, navigation_source("site")
 
 

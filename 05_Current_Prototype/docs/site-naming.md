@@ -71,7 +71,7 @@ Zone positions on the map are pixel boxes in `assets/maps/bay-south-zones.json`,
 
 | Thing | Format | Example |
 | --- | --- | --- |
-| Asset | `<ZONE>-<TYPE>-<NN>` | `FDM-CHL-01` (Flower Dome chiller 1) |
+| Asset | `<ZONE>-<TYPE>-<NN>` | `FDM-AHU-01` (Flower Dome air handler CD-AHU-07) |
 | Asset type | `CHL` chiller, `AHU` air handler, `PMP` pump, `DB` distribution board, `OUT` outlet group, `LGT` lighting, `LFT` lift, `MST` misting, `FTN` fountain, `OGB` OG box (outdoor power box for events), `CEE` CEEform socket | |
 | CEEform socket | `<ZONE>-CEE-<NN>`, numbered per zone; named `<OG box> · socket <n>` and shown as S1 to S5 on its box | `MDW-CEE-07` (Meadow OG box 2 · socket 2) |
 | Electrical point | snake_case with unit, as in the existing demo | `voltage_v`, `current_a`, `power_kw`, `energy_kwh`, `power_factor` |
